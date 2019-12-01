@@ -1,0 +1,227 @@
+<!--
+Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html>
+<head>
+  <title>
+    Products
+  </title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/all.min.css" rel="stylesheet">
+</head>
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModalCenter" tabindex="-1" role="dialog" aria-labelledby="addProductModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLongTitle">Add Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addProductForm" th:action="@{/products}" method="post">
+          <div class="form-group">
+            <label for="addProductSku">SKU</label>
+            <input type="text" class="form-control" id="addProductSku" name="sku" aria-describedby="skuHelp" placeholder="Enter SKU">
+          </div>
+          <div class="form-group">
+            <label for="addProductName">Name</label>
+            <input type="text" class="form-control" id="addProductName" name="name" placeholder="Enter product name">
+          </div>
+          <div class="form-group">
+            <label for="addProductPrice">Price</label>
+            <input type="text" class="form-control" id="addProductPrice" name="price" placeholder="Enter product price">
+          </div>
+          <div class="form-group">
+            <label for="addProductCategory">Category</label>
+            <select class="form-control" id="addProductCategory" name="category">
+              <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="addProductForm">Add Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModalCenter" tabindex="-1" role="dialog" aria-labelledby="editProductModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProductModalLongTitle">Edit Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editProductForm" th:action="@{/updateProduct}" method="post">
+          <div class="form-group">
+            <label for="editProductSku">SKU</label>
+            <input type="text" class="form-control" id="editProductSku" name="sku" aria-describedby="skuHelp" placeholder="Enter SKU">
+          </div>
+          <div class="form-group">
+            <label for="editProductName">Name</label>
+            <input type="text" class="form-control" id="editProductName" name="name" placeholder="Enter product name">
+          </div>
+          <div class="form-group">
+            <label for="editProductPrice">Price</label>
+            <input type="text" class="form-control" id="editProductPrice" name="price" placeholder="Enter product price">
+          </div>
+          <div class="form-group">
+            <label for="editProductCategory">Category</label>
+            <select class="form-control" id="editProductCategory" name="category">
+              <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+            </select>
+          </div>
+          <input type="hidden" id="editProductId" name="id" value=""/>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="editProductForm">Save Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Delete Product Modal -->
+<div class="modal fade" id="deleteProductModalCenter" tabindex="-1" role="dialog" aria-labelledby="deleteProductModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteProductModalLongTitle">Delete Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="deleteProductForm" th:action="@{/deleteProduct}" method="post">
+          <h4>Are you sure you want to delete: <span id="deleteProductName" style="font-weight: bold">NAME</span></h4>
+          <input type="hidden" id="deleteProductId" name="id" value=""/>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="deleteProductForm">Delete Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+<body>
+<div class="container">
+  <nav class="navbar navbar-expand-lg">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarBootcamp"
+            aria-controls="navbarBootcamp" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarBootcamp">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="/products">Products</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/orders">Orders</span></a>
+        </li>
+      </ul>
+      <form th:if="${isAuthenticated}" class="form-inline my-2 my-lg-0">
+        <span th:text="'Welcome back, ' + ${username} ?: ''"></span>
+        <a class="btn btn-link" th:href="@{/logout}">Sign Out</a>
+      </form>
+    </div>
+  </nav>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="jumbotron">
+        <h2>Products</h2>
+        <div class="container">
+          <div class="row mb-2">
+            <div class="col">
+              <button class="btn btn-success float-right" data-toggle="modal" data-target="#addProductModalCenter">Add Product <i
+                  class="fas fa-plus"></i></button>
+            </div>
+          </div>
+          <div class="row">
+            <table class="table table-striped">
+              <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th class="text-center">Action</th>
+              </tr>
+              </thead>
+              <tr th:each="product : ${products}">
+                <td th:text="${product.sku}">ABC</td>
+                <td th:text="${product.category.name}">Shoes</td>
+                <td th:text="${product.name}">Air Jordan</td>
+                <td th:text="${#numbers.formatCurrency(product.price)}">100.00</td>
+                <td class="text-center"><a class='btn btn-secondary btn-xs text-white' data-toggle="modal" data-target="#editProductModalCenter" th:attr="data-product-id=${product.id},data-product-sku=${product.sku},data-product-name=${product.name},data-product-price=${product.price},data-product-category=${product.category.id}">Edit <i class="fas fa-edit"></i></a> <a class="btn btn-danger btn-xs text-white" data-toggle="modal" th:attr="data-product-id=${product.id},data-product-name=${product.name}" data-target="#deleteProductModalCenter">Del <i class="fas fa-trash"></i></a></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <h4><b>version 0.1</b> </h4>
+  </div>
+</footer>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/scripts.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $("#deleteProductModalCenter").on("show.bs.modal", function(e) {
+    var productId = $(e.relatedTarget).data("product-id");
+    var productName = $(e.relatedTarget).data("product-name");
+    $(".modal-body #deleteProductId").val(productId);
+    $(".modal-body #deleteProductName").text(productName);
+    $("#deleteProductModalCenter").modal("show");
+  });
+});
+
+$(document).ready(function() {
+  $("#editProductModalCenter").on("show.bs.modal", function(e) {
+    var productId = $(e.relatedTarget).data("product-id");
+    var productSku = $(e.relatedTarget).data("product-sku");
+    var productName = $(e.relatedTarget).data("product-name");
+    var productPrice = $(e.relatedTarget).data("product-price");
+    var productCategory = $(e.relatedTarget).data("product-category");
+    $(".modal-body #editProductId").val(productId);
+    $(".modal-body #editProductSku").val(productSku);
+    $(".modal-body #editProductName").val(productName);
+    $(".modal-body #editProductPrice").val(productPrice);
+    $(".modal-body #editProductCategory").val(productCategory);
+    $("#editProductModalCenter").modal("show");
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!--
+Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html>
+<head>
+  <title>
+    Orders
+  </title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/all.min.css" rel="stylesheet">
+</head>
+<!-- Delete Order Modal -->
+<div class="modal fade" id="deleteOrderModalCenter" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="deleteOrderModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteOrderModalLongTitle">Delete Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="deleteOrderForm" th:action="@{/deleteOrder}" method="post">
+          <h4>Are you sure you want to delete order: <span id="deleteOrderText" style="font-weight: bold">ID</span></h4>
+          <input type="hidden" id="deleteOrderId" name="id" value="" />
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="deleteOrderForm">Delete Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Add Order Modal -->
+<div class="modal fade" id="addOrderModalCenter" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="addOrderModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addOrderModalLongTitle">Add Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addOrderForm" th:action="@{/orders}" method="post">
+          <h4>Purchaser</h4>
+          <div class="form-group">
+            <label for="addOrderFirstName">First Name</label>
+            <input type="text" class="form-control" id="addOrderFirstName" name="purchaser.firstName" aria-describedby="firstNameHelp" placeholder="Enter First Name" />
+          </div>
+          <div class="form-group">
+            <label for="addOrderLastName">Last Name</label>
+            <input type="text" class="form-control" id="addOrderLastName" name="purchaser.lastName" aria-describedby="lastNameHelp" placeholder="Enter Last Name" />
+          </div>
+          <h4>Shipping Information</h4>
+          <div class="form-group">
+            <label for="addOrderAddress">Address</label>
+            <input type="text" class="form-control" id="addOrderAddress" name="shipAddress.line1" placeholder="Enter Address" />
+          </div>
+          <div class="form-group">
+            <label for="addOrderAddress2">Address 2</label>
+            <input type="text" class="form-control" id="addOrderAddress2" name="shipAddress.line2" placeholder="Enter Address 2" />
+          </div>
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label for="addOrderCity">City</label>
+                <input type="text" class="form-control" id="addOrderCity" name="shipAddress.city" placeholder="Enter City" />
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label for="addOrderState">State</label>
+                <select class="form-control" id="addOrderState" name="shipAddress.state">
+                  <option value="CA">CA</option>
+                  <option value="FL">FL</option>
+                  <option value="GA">GA</option>
+                  <option value="NV">NV</option>
+                  <option value="OR">OR</option>
+                  <option value="TX">TX</option>
+                  <option value="WA">WA</option>
+                </select>
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label for="addOrderPostalCode">Postal Code</label>
+                <input type="text" class="form-control" id="addOrderPostalCode" name="shipAddress.postalCode" placeholder="Enter Postal Code" />
+              </div>
+            </div>
+          </div>
+          <h4>Products</h4>
+          <div class="row mb-2">
+            <div class="col md-offset-1">
+              <label for="quantity1" th:text="${products[0].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="quantity1" name="lineItems[0].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="lineItemProduct1" name="lineItems[0].product.id" th:value="${products[0].id}" />
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col md-offset-1">
+              <label for="quantity2" th:text="${products[1].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="quantity2" name="lineItems[1].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="lineItemProduct2" name="lineItems[1].product.id" th:value="${products[1].id}" />
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col md-offset-1">
+              <label for="quantity3" th:text="${products[2].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="quantity3" name="lineItems[2].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="lineItemProduct3" name="lineItems[2].product.id" th:value="${products[2].id}" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="addOrderForm">Add Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModalCenter" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="editOrderModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editOrderModalLongTitle">Edit Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editOrderForm" th:action="@{/updateOrder}" method="post">
+          <h4>Purchaser</h4>
+            <input type="hidden" id="editOrderId" name="id" />
+            <input type="hidden" id="editOrderDate" name="orderDate" />
+          <div class="form-group">
+            <label for="editOrderFirstName">First Name</label>
+            <input type="text" class="form-control" id="editOrderFirstName" name="purchaser.firstName" aria-describedby="firstNameHelp" placeholder="Enter First Name" />
+            <input type="hidden" id="editOrderPurchaserId" name="purchaser.id" />
+          </div>
+          <div class="form-group">
+            <label for="editOrderLastName">Last Name</label>
+            <input type="text" class="form-control" id="editOrderLastName" name="purchaser.lastName" aria-describedby="lastNameHelp" placeholder="Enter Last Name" />
+          </div>
+          <h4>Shipping Information</h4>
+          <div class="form-group">
+            <label for="editOrderAddress">Address</label>
+            <input type="text" class="form-control" id="editOrderAddress" name="shipAddress.line1" placeholder="Enter Address" />
+          </div>
+          <div class="form-group">
+            <label for="editOrderAddress2">Address 2</label>
+            <input type="text" class="form-control" id="editOrderAddress2" name="shipAddress.line2" placeholder="Enter Address 2" />
+          </div>
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label for="editOrderCity">City</label>
+                <input type="text" class="form-control" id="editOrderCity" name="shipAddress.city" placeholder="Enter City" />
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label for="editOrderState">State</label>
+                <select class="form-control" id="addOrderState" name="shipAddress.state">
+                  <option value="CA">CA</option>
+                  <option value="FL">FL</option>
+                  <option value="GA">GA</option>
+                  <option value="NV">NV</option>
+                  <option value="OR">OR</option>
+                  <option value="TX">TX</option>
+                  <option value="WA">WA</option>
+                </select>
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label for="editOrderPostalCode">Postal Code</label>
+                <input type="text" class="form-control" id="editOrderPostalCode" name="shipAddress.postalCode" placeholder="Enter Postal Code" />
+              </div>
+            </div>
+          </div>
+          <h4>Products</h4>
+          <div class="row mb-2">
+            <div class="col offset-md-1">
+              <label for="editOrderQuantity1" th:text="${products[0].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="editOrderQuantity1" name="lineItems[0].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="editOrderLineItemProduct1" name="lineItems[0].product.id" th:value="${products[0].id}" />
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col offset-md-1">
+              <label for="editOrderQuantity2" th:text="${products[1].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="editOrderQuantity2" name="lineItems[1].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="editOrderLineItemProduct2" name="lineItems[1].product.id" th:value="${products[1].id}" />
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col offset-md-1">
+              <label for="quantity3" th:text="${products[2].name}"></label>
+            </div>
+            <div class="col">
+                <input type="text" id="editOrderQuantity3" name="lineItems[2].quantity" value="0" placeholder="Enter Quantity" />
+                <input type="hidden" id="editOrderLineItemProduct3" name="lineItems[2].product.id" th:value="${products[2].id}" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="editOrderForm">Edit Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+<body>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarBootcamp"
+        aria-controls="navbarBootcamp" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarBootcamp">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="/products">Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/orders">Orders</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" th:href="${isAuthenticated} ? 'ACTIVE' : 'RETIRED'"></a>
+          </li>
+        </ul>
+        <form th:if="${isAuthenticated}" class="form-inline my-2 my-lg-0">
+          <span th:text="'Welcome back, ' + ${username} ?: ''"></span>
+          <a class="btn btn-link" th:href="@{/logout}">Sign Out</a>
+        </form>
+      </div>
+    </nav>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="jumbotron">
+          <h2>Orders</h2>
+          <div class="container">
+            <div class="row mb-2">
+              <div class="col">
+                <button class="btn btn-success float-right" data-toggle="modal" data-target="#addOrderModalCenter">Add Order <i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+            <div class="row">
+            <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order Number</th>
+                    <th>Order Total</th>
+                    <th>Order Date</th>
+                    <th>Total Items</th>
+                    <th>Purchaser</th>
+                    <th class="text-center">Shipped</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+                    <tr th:each="order : ${orders}">
+                        <td th:text="${order.id}">1</td>
+                        <td th:text="${#numbers.formatCurrency(order.total)}">100.00</td>
+                        <td th:text="${order.orderDate}">10/10/2019</td>
+                        <td th:text="${#arrays.length(order.lineItems)}">3</td>
+                        <td th:text="${#strings.concat(order.purchaser.firstName, ' ', order.purchaser.lastName)}">Purchaser Name</td>
+                        <td class="text-center"><span th:class="'text-' + ((${order.shipDate} != null) ? 'success' : 'danger')"><i class="fas" th:classappend="${order.shipDate} != null ? 'fa-check-circle' : 'fa-times-circle'"></i></span></td>
+                        <td class="text-center"><a class="btn btn-secondary btn-xs text-white" data-toggle="modal" data-target="#editOrderModalCenter" th:attr="data-order-id=${order.id},data-order-date=${order.orderDate},data-purchaser-id=${order.purchaser.id},data-first-name=${order.purchaser.firstName},data-last-name=${order.purchaser.lastName},data-address=${order.shipAddress.line1},data-address2=${order.shipAddress.line2},data-city=${order.shipAddress.city},data-state=${order.shipAddress.state},data-postal-code=${order.shipAddress.postalCode}" th:attrappend="data-quantity1=${#arrays.isEmpty(order.lineItems)} ? '0' : ${order.lineItems[0].quantity},data-quantity2=${#arrays.length(order.lineItems) > 1} ? ${order.lineItems[1].quantity} : '0',data-quantity3=${#arrays.length(order.lineItems) > 2} ? ${order.lineItems[2].quantity} : '0'" >Edit <i class="fas fa-edit"></i></a> <a class="btn btn-danger btn-xs text-white" data-toggle="modal" th:attr="data-order-id=${order.id}" data-target="#deleteOrderModalCenter">Del <i class="fas fa-trash"></i></a></td>
+                    </tr>
+            </table>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">
+    <div class="container">
+      <h4><b>version 0.1</b> </h4>
+    </div>
+  </footer>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/scripts.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var deleteOrderModal = $("#deleteOrderModalCenter");
+      
+      deleteOrderModal.on("show.bs.modal", function(e) {
+        var orderId = $(e.relatedTarget).data("order-id");
+        $("#deleteOrderText").text(orderId);
+        $("#deleteOrderId").val(orderId);
+        deleteOrderModal.modal("show");
+      });
+    });
+    
+    $(document).ready(function() {
+      var editOrderModal = $("#editOrderModalCenter");
+      
+      editOrderModal.on("show.bs.modal", function(e) {
+        var orderId = $(e.relatedTarget).data("order-id");
+        var orderDate = new Date($(e.relatedTarget).data("order-date")).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        var purchaserId = $(e.relatedTarget).data("purchaser-id");
+        var firstName = $(e.relatedTarget).data("first-name");
+        var lastName = $(e.relatedTarget).data("last-name");
+        var address  = $(e.relatedTarget).data("address");
+        var address1 = $(e.relatedTarget).data("address1");
+        var city = $(e.relatedTarget).data("city");
+        var state = $(e.relatedTarget).data("state");
+        var postalCode = $(e.relatedTarget).data("postal-code");
+        var quantity1 = $(e.relatedTarget).data("quantity1");
+        var quantity2 = $(e.relatedTarget).data("quantity2");
+        var quantity3 = $(e.relatedTarget).data("quantity3");
+        $("#editOrderId").val(orderId);
+        $("#editOrderDate").val(orderDate);
+        $("#editOrderPurchaserId").val(purchaserId);
+        $("#editOrderFirstName").val(firstName);
+        $("#editOrderLastName").val(lastName);
+        $("#editOrderAddress").val(address);
+        $("#editOrderAddress1").val(address1);
+        $("#editOrderCity").val(city);
+        $("#editOrderState").val(state);
+        $("#editOrderPostalCode").val(postalCode);
+        $("#editOrderQuantity1").val(quantity1);
+        $("#editOrderQuantity2").val(quantity2);
+        $("#editOrderQuantity3").val(quantity3);
+        
+        editOrderModal.modal("show");
+      });
+    });
+</script>
+</body>
+</html>

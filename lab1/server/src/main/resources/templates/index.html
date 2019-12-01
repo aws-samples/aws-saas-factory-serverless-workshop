@@ -1,0 +1,118 @@
+<!--
+Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html>
+<head>
+  <title>
+    Home
+  </title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/all.min.css" rel="stylesheet">
+</head>
+
+<!-- Sign In Modal -->
+<div class="modal fade" id="signInModalCenter" tabindex="-1" role="dialog" aria-labelledby="signInModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="signInModalLongTitle">Sign In</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fas fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="signInForm" th:method="post" th:action="@{/}">
+          <div class="form-group">
+            <label for="signInEmail1">Email address</label>
+            <input type="email" class="form-control" id="signInEmail1" name="username" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="signUpPassword">Password</label>
+            <input type="password" class="form-control" id="signInPassword" name="password" placeholder="Password">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success" form="signInForm">Sign In</button>
+      </div>
+    </div>
+  </div>
+</div>
+<body>
+<div class="container">
+  <nav class="navbar navbar-expand-lg">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarBootcamp"
+            aria-controls="navbarBootcamp" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarBootcamp">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item" th:unless="${isAnonymous}">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item" th:unless="${isAnonymous}">
+          <a class="nav-link" href="/products">Products</span></a>
+        </li>
+        <li class="nav-item" th:unless="${isAnonymous}">
+          <a class="nav-link" href="/orders">Orders</span></a>
+        </li>
+      </ul>
+      <form class="form-inline my-2 my-lg-0" th:if="${isAnonymous}">
+        <button class="btn btn-link my-2 my-sm-0" type="button" data-toggle="modal" data-target="#signInModalCenter">Sign In</button>
+      </form>
+      <form class="form-inline my-2 my-lg-0" th:unless="${isAnonymous}">
+              <span th:text="'Welcome back, ' + ${username} ?: ''"></span>
+              <a class="btn btn-link" th:href="@{/logout}">Sign Out</a>
+          </form>
+      </div>
+  </nav>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="jumbotron">
+        <div class="container" style="background-image: url(./assets/green-02@2x.png); background-size: 'cover'; background-position: 72% 0%">
+          <div class="container-fluid" style="height: 40vh">
+            <row>
+              <col>
+                <h1 class="display-2 text-light"><strong>SaaS Commerce</strong> </h1>
+                <p class="lead text-light mb-5">Your SaaS commerce solution</p>
+              </col>
+            </row>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <h4><b>version 0.1</b> </h4>
+  </div>
+</footer>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+      if (window.location.href.indexOf("signin=1") != -1) {
+        $("#signInModalCenter").modal("show");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1492 @@
+---
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS SaaS Factory Serverless SaaS Workshop - Lab 1
+Parameters:
+  AMI:
+    Description: EC2 Image ID to run the monolith (don't change)
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  WorkshopS3Bucket:
+    Description: S3 bucket where you uploaded the Lambda code packages for CloudFormation
+    Type: String
+  EventEngineRole:
+    Description: IAM role ARN of the Event Engine player role if it exists
+    Type: String
+    Default: ''
+  EventEngineRoleName:
+    Description: IAM role name of the Event Engine player role
+    Type: String
+    Default: ''
+  DBName:
+    Description: RDS Database Name
+    Type: String
+    MinLength: 3
+    MaxLength: 31
+    AllowedPattern: ^[a-zA-Z]+[a-zA-Z0-9_\$]*$
+    ConstraintDescription: Database name must be between 3 and 31 characters in length
+  DBMasterUsername:
+    Description: RDS Master Username
+    Type: String
+  DBMasterPassword:
+    Description: RDS Master User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+  DBAppUsername:
+    Description: RDS Application Username
+    Type: String
+  DBAppPassword:
+    Description: RDS Application User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+#Metadata:
+Conditions:
+  EventEngine: !Not [!Equals ['', !Ref EventEngineRole]]
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-vpc
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-igw
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-pub
+  RoutePublic:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.32.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subA-pub
+  SubnetPublicARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref RouteTablePublic
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.0.96.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subB-pub
+  SubnetPublicBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref RouteTablePublic
+  NatGatewayAddrA:
+    Type: AWS::EC2::EIP
+    DependsOn: AttachGateway
+    Properties:
+      Domain: vpc
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayAddrA.AllocationId
+      SubnetId: !Ref SubnetPublicA
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-nat-subA-pub
+  RouteTableNatA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-natA
+  RouteNatA:
+    Type: AWS::EC2::Route
+    DependsOn: NatGatewayA
+    Properties:
+      RouteTableId: !Ref RouteTableNatA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayA
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.0.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subA-priv
+  SubnetPrivateARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref RouteTableNatA
+  NatGatewayAddrB:
+    Type: AWS::EC2::EIP
+    DependsOn: AttachGateway
+    Properties:
+      Domain: vpc
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayAddrB.AllocationId
+      SubnetId: !Ref SubnetPublicB
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-nat-subB-pub
+  RouteTableNatB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-natB
+  RouteNatB:
+    Type: AWS::EC2::Route
+    DependsOn: NatGatewayB
+    Properties:
+      RouteTableId: !Ref RouteTableNatB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.0.64.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subB-priv
+  SubnetPrivateBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref RouteTableNatB
+  JumpBoxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: saas-factory-srvls-wrkshp-jumpbox-sg
+      GroupDescription: Jump Box SSH Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-jumpbox-sg
+  JumpBox:
+    Type: AWS::EC2::Instance
+    DependsOn: InvokeLambdaCreateKeyPair
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          commands:
+            yum_update:
+              command: yum update -y
+            psql_install:
+              command: yum install -y postgresql
+    Properties:
+      ImageId: !Ref AMI
+      InstanceType: t2.micro
+      KeyName: !GetAtt InvokeLambdaCreateKeyPair.KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref SubnetPublicA
+          GroupSet:
+            - !Ref JumpBoxSecurityGroup
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-jumpbox
+      UserData:
+        Fn::Base64:
+          !Join
+            - ''
+            - - "#!/bin/bash\n"
+              - "yum update -y aws-cfn-bootstrap\n"
+              - "# Run the default config from the CloudFormation metadata\n"
+              - "/opt/aws/bin/cfn-init -v -s "
+              - !Ref AWS::StackName
+              - " -r JumpBox -c default --region "
+              - !Ref AWS::Region
+              - "\n\n"
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: saas-factory-srvls-wrkshp-alb-sg
+      GroupDescription: Application Load Balancer Security Group
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-alb-sg
+  ALBSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+  ALBSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8080
+      DestinationSecurityGroupId: !Ref AppServerSecurityGroup
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub saas-wrkshp-lab1-${AWS::Region}
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: 30
+      Subnets:
+        - !Ref SubnetPublicA
+        - !Ref SubnetPublicB    
+      SecurityGroups: [!Ref ALBSecurityGroup]
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: saas-factory-srvls-wrkshp-tg
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: '/health.html'
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Port: 8080
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: true
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: 86400
+      VpcId: !Ref VPC
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      DefaultActions:
+        - TargetGroupArn: !Ref ALBTargetGroup
+          Type: forward
+      Port: 80
+      Protocol: HTTP
+  ALBRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref ALBTargetGroup
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          Values: ['*']
+      ListenerArn: !Ref ALBListener
+      Priority: 1
+  AppServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: saas-factory-srvls-wrkshp-app-sg
+      GroupDescription: App Server Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref JumpBoxSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-app-sg
+  AppServerInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-app-role-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-app-policy-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+                  - !Sub arn:aws:s3:::aws-codedeploy-${AWS::Region}/*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*
+  AppServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref AppServerInstanceRole
+  AppServerApplicationLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub saas-factory-srvls-wrkshp-${AWS::Region}
+      RetentionInDays: 30
+  AppServerSystemLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /var/log/messages
+      RetentionInDays: 30
+  AppServerLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    DependsOn: InvokeLambdaCreateKeyPair
+    Properties:
+      LaunchConfigurationName: saas-factory-srvls-wrkshp-launch-config
+      ImageId: !Ref AMI
+      InstanceType: t2.micro
+      KeyName: !GetAtt InvokeLambdaCreateKeyPair.KeyName
+      SecurityGroups: [!Ref AppServerSecurityGroup]
+      IamInstanceProfile: !Ref AppServerInstanceProfile
+      UserData:
+        Fn::Base64:
+          !Join
+            - ''
+            - - "#!/bin/bash -xe\n"
+              - "yum update -y\n"
+              - "# We need CloudWatch Logs Agent, Ruby for the CodeDeploy installer and Java to run our app\n"
+              - "yum install -y aws-cli awslogs jq ruby java-1.8.0-openjdk\n"
+              - "# Install the CodeDeploy agent\n"
+              - "cd /home/ec2-user\n"
+              - "curl -O https://aws-codedeploy-"
+              - !Ref AWS::Region
+              - ".s3.amazonaws.com/latest/install\n"
+              - "chmod +x ./install\n"
+              - "./install auto\n"
+              - "# Point CloudWatch at the correct region\n"
+              - "sed -i s/us-east-1/"
+              - !Ref AWS::Region
+              - "/g /etc/awslogs/awscli.conf\n"
+              - "# Add an entry for our app to the log agent config\n"
+              - "cat << 'EOF' >> /etc/awslogs/awslogs.conf\n"
+              - "\n"
+              - "[/home/ec2-user/application.log]\n"
+              - "datetime_format = %b %d %H:%M:%S\n"
+              - "file = /home/ec2-user/application.log\n"
+              - "buffer_duration = 5000\n"
+              - "log_stream_name = {instance_id}\n"
+              - "initial_position = start_of_file\n"
+              - "log_group_name = saas-factory-srvls-wrkshp-"
+              - !Ref AWS::Region
+              - "\n\n[/home/ec2-user/application.log-merged]\n"
+              - "datetime_format = %b %d %H:%M:%S\n"
+              - "file = /home/ec2-user/application.log\n"
+              - "buffer_duration = 5000\n"
+              - "log_stream_name = merged\n"
+              - "initial_position = start_of_file\n"
+              - "log_group_name = saas-factory-srvls-wrkshp-"
+              - !Ref AWS::Region
+              - "\nEOF\n\n"
+              - "systemctl enable awslogsd.service\n"
+              - "systemctl start awslogsd\n\n"
+  AppServerAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref SubnetPrivateA
+        - !Ref SubnetPrivateB
+      LaunchConfigurationName: !Ref AppServerLaunchConfig
+      MinSize: 2
+      MaxSize: 2
+      TargetGroupARNs: [!Ref ALBTargetGroup]
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-lab1-app
+          PropagateAtLaunch: true
+  CodeCommitRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: saas-factory-serverless-workshop
+  Cloud9:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 120
+      SubnetId: !Ref SubnetPublicA
+      InstanceType: t3.medium
+      Name: Serverless SaaS Workshop IDE
+      OwnerArn:
+        !If [EventEngine, !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/${EventEngineRoleName}/MasterKey", !Ref "AWS::NoValue"]
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - CodePipelineBucket
+      - WebsiteBucket
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-cfn-lambda-role-lab1-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-cfn-lambda-policy-lab1-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:ListBucketVersions
+                  - s3:GetBucketVersioning
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+                  - !Sub arn:aws:s3:::${WebsiteBucket}
+                  - !Sub arn:aws:s3:::${WebsiteBucket}/*
+              - Effect: Allow
+                Action:
+                  - ssm:PutParameter
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:DescribeParameters
+                  - ssm:DeleteParameter
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ListKeys
+                  - kms:ListAliases
+                  - kms:Describe*
+                Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:CreateKeyPair
+                  - ec2:DeleteKeyPair
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*
+  LambdaClearS3BucketLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-clear-bucket-lab1-${AWS::Region}
+      RetentionInDays: 30
+  LambdaClearS3Bucket:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-clear-bucket-lab1-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 30
+      MemorySize: 256
+      Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: ClearS3Bucket.jar
+  InvokeLambdaClearS3BucketCodePipelineBucket:
+    Type: Custom::CustomResource
+    DependsOn: CodePipelineBucket
+    Properties:
+      ServiceToken: !GetAtt LambdaClearS3Bucket.Arn
+      Bucket: !Ref CodePipelineBucket
+  LambdaCreateKeyPairLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-create-keypair-${AWS::Region}
+      RetentionInDays: 30
+  LambdaCreateKeyPair:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-create-keypair-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 30
+      MemorySize: 256
+      Handler: com.amazon.aws.partners.saasfactory.CreateKeyPair
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: CreateKeyPair.jar
+  InvokeLambdaCreateKeyPair:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !GetAtt LambdaCreateKeyPair.Arn
+      KeyName: !Sub saas-factory-srvls-wrkshop-keypair-${AWS::Region}
+  CodePipelineBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub saas-factory-srvls-wrkshp-pipeline-lab1-${AWS::Region}
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    DependsOn: CodePipelineBucket
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-codebuild-role-lab1-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-codebuild-policy-lab1-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+  CodeBuildProjectLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/saas-factory-srvls-wrkshp-lab1
+      RetentionInDays: 30
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: saas-factory-srvls-wrkshp-lab1
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-lab1
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      TimeoutInMinutes: 10
+      Artifacts:
+        Type: S3
+        Location: !Ref CodePipelineBucket
+        Path: '/'
+        Name: lab1
+        Packaging: ZIP
+      Environment:
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:2.0
+        Type: LINUX_CONTAINER
+      Source:
+        Type: CODECOMMIT
+        Location: !GetAtt CodeCommitRepo.CloneUrlHttp
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                docker: 18
+            build:
+              commands:
+                - cd lab1/server
+                - mvn clean package
+          artifacts:
+            files:
+              - lab1/server/target/application.jar
+              - lab1/server/scripts/*.sh
+              - lab1/server/appspec.yml
+            discard-paths: yes
+          cache:
+            paths:
+              - '/root/.m2/**/*'
+  CodeDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-codedeploy-role-lab1-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-codedeploy-policy-lab1-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstance
+                  - ec2:CreateTags
+                  - iam:PassRole
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:DescribeParameters
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*
+  CodeDeployProject:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: saas-factory-srvls-wrkshp-codedeploy-lab1
+      ComputePlatform: Server
+  CodeDeployDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: CodeDeployRole
+    Properties:
+      ApplicationName: !Ref CodeDeployProject
+      AutoScalingGroups:
+        - !Ref AppServerAutoScalingGroup
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+      DeploymentGroupName: saas-factory-srvls-wrkshp-lab1
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    DependsOn: CodePipelineBucket
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-codepipeline-role-lab1-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-codepipeline-policy-lab1-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: '*'
+                Condition:
+                  StringEqualsIfExists:
+                    iamPassedToService:
+                      - ec2.amazonaws.com
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+              - Effect: Allow
+                Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:CancelUploadArchive
+                Resource:
+                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeCommitRepo.Name}
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:RegisterApplicationRevision
+                Resource: '*'
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: saas-factory-srvls-wrkshp-pipeline-lab1
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Location: !Ref CodePipelineBucket
+        Type: S3
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                BranchName: master
+                RepositoryName: !GetAtt CodeCommitRepo.Name
+                PollForSourceChanges: false
+              RunOrder: 1
+              OutputArtifacts:
+                - Name: App
+        - Name: Build
+          Actions:
+            - Name: BuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: App
+              OutputArtifacts:
+                - Name: AppDeploy
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: 1
+              Configuration:
+                ApplicationName: !Ref CodeDeployProject
+                DeploymentGroupName: !Ref CodeDeployDeploymentGroup
+              InputArtifacts:
+                - Name: AppDeploy
+  CloudWatchEventRoleForCloudTrail:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-cw-event-role-lab1-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-cw-event-policy-lab1-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codepipeline:StartPipelineExecution
+                Resource: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
+  CloudWatchEventRuleForCodePipeline:
+    Type: AWS::Events::Rule
+    DependsOn: CloudWatchEventRoleForCloudTrail
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - 'CodeCommit Repository State Change'
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - master
+      Targets:
+        - Arn: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
+          RoleArn: !GetAtt CloudWatchEventRoleForCloudTrail.Arn
+          Id: !Ref CodePipeline
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: saas-factory-srvls-wrkshp-rds-sg
+      GroupDescription: RDS Aurora PostgreSQL 5432 Security Group
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-rds-sg
+  RDSSecurityGroupIngressJumpBox:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref JumpBoxSecurityGroup
+  RDSSecurityGroupIngressEC2:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AppServerSecurityGroup
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref AppServerSecurityGroup
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: saas-factory-srvls-wrkshp-rds-subnets
+      DBSubnetGroupName: saas-factory-srvls-wrkshp-rds-subnets
+      SubnetIds:
+        - !Ref SubnetPrivateA
+        - !Ref SubnetPrivateB
+  RDSClusterParameterGroup: 
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Family: aurora-postgresql10
+      Description: saas-factory-srvls-wrkshp-rds-cluster-parameters
+      Parameters:
+        ssl: true
+  RDSCluster:
+    Type: AWS::RDS::DBCluster
+    DependsOn: RDSClusterParameterGroup
+    DeletionPolicy: Delete
+    Properties:
+      AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      Engine: aurora-postgresql
+      Port: 5432
+      DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      DBClusterIdentifier: saas-factory-srvls-wrkshp-lab1-cluster
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword:
+        Fn::Join:
+          - ''
+          - - '{{resolve:ssm-secure:saas-factory-srvls-wrkshp-owner-pw:'
+            - !GetAtt InvokeLambdaSSMPutParamSecure.Version
+            - '}}'
+  RDSInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSCluster
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab1-instance1
+  RDSInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSCluster
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [1, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab1-instance2
+  RDSHotCluster1:
+    Type: AWS::RDS::DBCluster
+    DependsOn: RDSClusterParameterGroup
+    DeletionPolicy: Delete
+    Properties:
+      AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      Engine: aurora-postgresql
+      Port: 5432
+      DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      DBClusterIdentifier: saas-factory-srvls-wrkshp-lab2-cluster1
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword:
+        Fn::Join:
+          - ''
+          - - '{{resolve:ssm-secure:saas-factory-srvls-wrkshp-owner-pw:'
+            - !GetAtt InvokeLambdaSSMPutParamSecure.Version
+            - '}}'
+  RDSHotCluster1Instance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSHotCluster1
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab2-cluster1-instance1
+  RDSHotCluster1Instance2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSHotCluster1
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [1, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab2-cluster1-instance2
+  RDSHotCluster2:
+    Type: AWS::RDS::DBCluster
+    DependsOn: RDSClusterParameterGroup
+    DeletionPolicy: Delete
+    Properties:
+      AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      Engine: aurora-postgresql
+      Port: 5432
+      DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      DBClusterIdentifier: saas-factory-srvls-wrkshp-lab2-cluster2
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword:
+        Fn::Join:
+          - ''
+          - - '{{resolve:ssm-secure:saas-factory-srvls-wrkshp-owner-pw:'
+            - !GetAtt InvokeLambdaSSMPutParamSecure.Version
+            - '}}'
+  RDSHotCluster2Instance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSHotCluster2
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab2-cluster2-instance1
+  RDSHotCluster2Instance2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSHotCluster2
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [1, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab2-cluster2-instance2
+  RDSPooledCluster:
+    Type: AWS::RDS::DBCluster
+    DependsOn: RDSClusterParameterGroup
+    DeletionPolicy: Delete
+    Properties:
+      AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      Engine: aurora-postgresql
+      Port: 5432
+      DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      DBClusterIdentifier: saas-factory-srvls-wrkshp-lab4-cluster
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword:
+        Fn::Join:
+          - ''
+          - - '{{resolve:ssm-secure:saas-factory-srvls-wrkshp-owner-pw:'
+            - !GetAtt InvokeLambdaSSMPutParamSecure.Version
+            - '}}'
+  RDSPooledClusterInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSPooledCluster
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab4-instance1
+  RDSPooledClusterInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref RDSPooledCluster
+      PubliclyAccessible: false
+      AvailabilityZone: !Select [1, !GetAZs '']
+      DBInstanceClass: db.r5.large
+      Engine: aurora-postgresql
+      DBInstanceIdentifier: saas-factory-srvls-wrkshp-lab4-instance2
+  LambdaSSMPutParamSecureLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-ssm-secure-${AWS::Region}
+      RetentionInDays: 30
+  LambdaSSMPutParamSecure:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-ssm-secure-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 30
+      MemorySize: 256
+      Handler: com.amazon.aws.partners.saasfactory.SSMPutParamSecure
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: SSMPutParamSecure.jar
+  InvokeLambdaSSMPutParamSecure:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !GetAtt LambdaSSMPutParamSecure.Arn
+      Name: saas-factory-srvls-wrkshp-owner-pw # SSM Parameter Name
+      Value: !Ref DBMasterPassword
+  InvokeLambdaSSMPutParamSecure2:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !GetAtt LambdaSSMPutParamSecure.Arn
+      Name: saas-factory-srvls-wrkshp-app-pw
+      Value: !Ref DBAppPassword
+  InvokeLambdaSSMPutParamSecure3:
+    Type: Custom::CustomResource
+    DependsOn: InvokeLambdaCreateKeyPair
+    Properties:
+      ServiceToken: !GetAtt LambdaSSMPutParamSecure.Arn
+      Name: saas-factory-srvls-wrkshop-keypair-pem
+      Value: !GetAtt InvokeLambdaCreateKeyPair.KeyMaterial
+  SSMParamDBHost:
+    Type: AWS::SSM::Parameter
+    DependsOn:
+      - RDSCluster
+      - RDSInstance1
+      - RDSInstance2
+    Properties:
+      Name: DB_HOST
+      Type: String
+      Value: !GetAtt [RDSCluster, Endpoint.Address]
+  SSMParamDBName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: DB_NAME
+      Type: String
+      Value: !Ref DBName
+  SSMParamDBUser:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: DB_USER
+      Type: String
+      Value: !Ref DBAppUsername
+  SSMParamDBPass:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: DB_PASS
+      Type: String
+      Value: saas-factory-srvls-wrkshp-app-pw
+  RDSHotPoolTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: saas-factory-srvls-wrkshp-rds-clusters
+      AttributeDefinitions:
+        - AttributeName: DBClusterIdentifier
+          AttributeType: S
+      KeySchema:
+        - AttributeName: DBClusterIdentifier
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  LambdaBootstrapDatabaseLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-bootstrap-rds-${AWS::Region}
+      RetentionInDays: 30
+  LambdaBootstrapDatabase:
+    Type: AWS::Lambda::Function
+    DependsOn: JumpBoxSecurityGroup
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-bootstrap-rds-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 60
+      MemorySize: 256
+      VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
+        SecurityGroupIds:
+          - !Ref JumpBoxSecurityGroup
+        SubnetIds:
+          - !Ref SubnetPrivateA
+          - !Ref SubnetPrivateB
+      Handler: com.amazon.aws.partners.saasfactory.BootstrapRDS
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: BootstrapRDS.jar
+  LambdaAddDatabaseUserLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-rds-add-db-user-${AWS::Region}
+      RetentionInDays: 30
+  LambdaAddDatabaseUserRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-rds-add-db-user-role-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-rds-add-db-user-policy-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                Resource:
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*
+  LambdaAddDatabaseUser:
+    Type: AWS::Lambda::Function
+    DependsOn: JumpBoxSecurityGroup
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-rds-add-db-user-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 60
+      MemorySize: 256
+      VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
+        SecurityGroupIds:
+          - !Ref JumpBoxSecurityGroup
+        SubnetIds:
+          - !Ref SubnetPrivateA
+          - !Ref SubnetPrivateB
+      Handler: com.amazon.aws.partners.saasfactory.BootstrapRDS::addApplicationUser
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: BootstrapRDS.jar
+  InvokeLambdaBootstrapDatabaseLab1:
+    Type: Custom::CustomResource
+    DependsOn:
+      - RDSCluster
+      - RDSInstance1
+      - RDSInstance2
+      - JumpBoxSecurityGroup
+      - RDSHotPoolTable
+    Properties:
+      ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
+      RDSMasterUsername: !Ref DBMasterUsername
+      RDSMasterPassword: saas-factory-srvls-wrkshp-owner-pw
+      RDSAppUsername: !Ref DBAppUsername
+      RDSAppPassword: saas-factory-srvls-wrkshp-app-pw
+      RDSCluster: !Ref RDSCluster
+      RDSClusterEndpoint: !GetAtt [RDSCluster, Endpoint.Address]
+      RDSDatabase: !Ref DBName
+      TenantId: MONOLITH
+  InvokeLambdaBootstrapDatabaseLab2Cluster1:
+    Type: Custom::CustomResource
+    DependsOn:
+      - RDSHotCluster1
+      - RDSHotCluster1Instance1
+      - RDSHotCluster1Instance2
+      - JumpBoxSecurityGroup
+      - RDSHotPoolTable
+    Properties:
+      ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
+      RDSMasterUsername: !Ref DBMasterUsername
+      RDSMasterPassword: saas-factory-srvls-wrkshp-owner-pw
+      RDSAppUsername: ''
+      RDSAppPassword: ''
+      RDSCluster: !Ref RDSHotCluster1
+      RDSClusterEndpoint: !GetAtt [RDSHotCluster1, Endpoint.Address]
+      RDSDatabase: !Ref DBName
+      TenantId: ''
+  InvokeLambdaBootstrapDatabaseLab2Cluster2:
+    Type: Custom::CustomResource
+    DependsOn:
+      - RDSHotCluster2
+      - RDSHotCluster2Instance1
+      - RDSHotCluster2Instance2
+      - JumpBoxSecurityGroup
+      - RDSHotPoolTable
+    Properties:
+      ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
+      RDSMasterUsername: !Ref DBMasterUsername
+      RDSMasterPassword: saas-factory-srvls-wrkshp-owner-pw
+      RDSAppUsername: ''
+      RDSAppPassword: ''
+      RDSCluster: !Ref RDSHotCluster2
+      RDSClusterEndpoint: !GetAtt [RDSHotCluster2, Endpoint.Address]
+      RDSDatabase: !Ref DBName
+      TenantId: ''
+  LambdaBootstrapDatabasePooledLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-rds-pooled-${AWS::Region}
+      RetentionInDays: 30
+  LambdaBootstrapDatabasePooled:
+    Type: AWS::Lambda::Function
+    DependsOn: JumpBoxSecurityGroup
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-rds-pooled-${AWS::Region}
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: java8
+      Timeout: 60
+      MemorySize: 256
+      VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
+        SecurityGroupIds:
+          - !Ref JumpBoxSecurityGroup
+        SubnetIds:
+          - !Ref SubnetPrivateA
+          - !Ref SubnetPrivateB
+      Handler: com.amazon.aws.partners.saasfactory.BootstrapRDS::bootstrapPool
+      Code:
+        S3Bucket: !Ref WorkshopS3Bucket
+        S3Key: BootstrapRDS.jar
+  InvokeLambdaBootstrapDatabasePooled:
+    Type: Custom::CustomResource
+    DependsOn:
+      - RDSPooledCluster
+      - RDSPooledClusterInstance1
+      - RDSPooledClusterInstance2
+      - JumpBoxSecurityGroup
+    Properties:
+      ServiceToken: !GetAtt LambdaBootstrapDatabasePooled.Arn
+      RDSMasterUsername: !Ref DBMasterUsername
+      RDSMasterPassword: saas-factory-srvls-wrkshp-owner-pw
+      RDSAppUsername: !Ref DBAppUsername
+      RDSAppPassword: saas-factory-srvls-wrkshp-app-pw
+      RDSCluster: !Ref RDSPooledCluster
+      RDSClusterEndpoint: !GetAtt [RDSPooledCluster, Endpoint.Address]
+      RDSDatabase: !Ref DBName
+      TenantId: ''
+  SSMParamDBHostLab4:
+    Type: AWS::SSM::Parameter
+    DependsOn:
+      - RDSPooledCluster
+      - RDSPooledClusterInstance1
+      - RDSPooledClusterInstance2
+    Properties:
+      Name: DB_HOST_POOL
+      Type: String
+      Value: !GetAtt [RDSPooledCluster, Endpoint.Address]
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      Tags:
+        - Key: Name
+          Value: !Sub saas-factory-srvls-wrkshp-website-bucket-${AWS::Region}
+  InvokeLambdaClearS3BucketWebsiteBucket:
+    Type: Custom::CustomResource
+    DependsOn: WebsiteBucket
+    Properties:
+      ServiceToken: !GetAtt LambdaClearS3Bucket.Arn
+      Bucket: !Ref WebsiteBucket
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: WebsiteBucket
+    Properties:
+      DistributionConfig:
+        DefaultRootObject: index.html
+        Enabled: true
+        IPV6Enabled: false
+        HttpVersion: http2
+        Origins:
+          - Id: !Sub S3-Website-${WebsiteBucket}
+            DomainName: !Select [1, !Split ["http://", !GetAtt WebsiteBucket.WebsiteURL]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              OriginSSLProtocols: ['TLSv1', 'TLSv1.1', 'TLSv1.2']
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          AllowedMethods: [GET,HEAD,OPTIONS]
+          CachedMethods: [GET,HEAD,OPTIONS]
+          TargetOriginId: !Sub S3-Website-${WebsiteBucket}
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          ForwardedValues:
+            Headers:
+              - Origin
+              - Access-Control-Request-Headers
+              - Access-Control-Request-Method
+            QueryString: false
+  SSMParamVpc:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: VPC
+      Type: String
+      Value: !Ref VPC
+  SSMParamKeyPairName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: KEY_PAIR
+      Type: String
+      Value: !GetAtt InvokeLambdaCreateKeyPair.KeyName
+  SSMParamWorkshopBucket:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: WORKSHOP_BUCKET
+      Type: String
+      Value: !Ref WorkshopS3Bucket
+  SSMParamAppServerSecurityGroup:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: APP_SG
+      Type: String
+      Value: !Ref AppServerSecurityGroup
+  SSMParamPrivateSubnets:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: PRIVATE_SUBNETS
+      Type: String
+      Value:
+        Fn::Join: [',', [!Ref SubnetPrivateA, !Ref SubnetPrivateB]]
+  SSMParamAddDatabaseUserLambda:
+    Type: AWS::SSM::Parameter
+    DependsOn: LambdaAddDatabaseUser
+    Properties:
+      Name: RDS_ADD_USER_LAMBDA
+      Type: String
+      Value: !GetAtt LambdaAddDatabaseUser.Arn
+Outputs:
+  WorkshopBucket:
+    Description: Workshop S3 bucket
+    Value: !Ref WorkshopS3Bucket
+  PrivateSubnets:
+    Description: Workshop private subnet ids
+    Value:
+      Fn::Join: [',', [!Ref SubnetPrivateA, !Ref SubnetPrivateB]]
+  PublicSubnets:
+    Description: Workshop public subnet ids
+    Value:
+      Fn::Join: [',', [!Ref SubnetPublicA, !Ref SubnetPublicB]]
+  AppServerSecurityGroup:
+    Description: Application server security group
+    Value: !Ref AppServerSecurityGroup
+  RDSAccessSecurityGroup:
+    Description: RDS access security group
+    Value: !Ref JumpBoxSecurityGroup
+  LoadBalancerSecurityGroup:
+    Description: Load balancer security group
+    Value: !Ref ALBSecurityGroup
+  LoadBalancerEndpoint:
+    Description: Load balancer URL
+    Value: !GetAtt LoadBalancer.DNSName
+  CodeCommitRepoName:
+    Description: CodeCommit repository
+    Value: !GetAtt CodeCommitRepo.Name
+  CodeCommitCloneURL:
+    Description: CodeCommit repository clone URL
+    Value: !GetAtt CodeCommitRepo.CloneUrlHttp
+  JumpBoxDNS:
+    Description: Jump Box DNS
+    Value: !GetAtt JumpBox.PublicDnsName
+  WebsiteS3Bucket:
+    Description: S3 Website Bucket
+    Value: !Ref WebsiteBucket
+  CloudFrontDistributionDNS:
+    Description: Website URL
+    Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
+  AddDatabaseUserLambda:
+    Description: Lambda execution role to add an application user to an RDS cluster
+    Value: !GetAtt LambdaAddDatabaseUser.Arn
+...

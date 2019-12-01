@@ -1,0 +1,150 @@
+{
+  "billAddress": {
+    "M": {
+      "city": {
+        "S": "North Pole City"
+      },
+      "line1": {
+        "S": "Kris Kringle Road"
+      },
+      "postalCode": {
+        "S": "12345"
+      },
+      "state": {
+        "S": "North Pole"
+      }
+    }
+  },
+  "id": {
+    "S": "05a31fae-7305-4fba-814e-bbc52170cbb0"
+  },
+  "lineItems": {
+    "L": [
+      {
+        "M": {
+          "extendedPurchasePrice": {
+            "N": "70"
+          },
+          "id": {
+            "S": "3"
+          },
+          "orderId": {
+            "S": "05a31fae-7305-4fba-814e-bbc52170cbb0"
+          },
+          "product": {
+            "M": {
+              "category": {
+                "M": {
+                  "id": {
+                    "S": "3"
+                  },
+                  "name": {
+                    "S": "Baseball"
+                  }
+                }
+              },
+              "id": {
+                "S": "1"
+              },
+              "name": {
+                "S": "ABC Product"
+              },
+              "price": {
+                "N": "35"
+              },
+              "sku": {
+                "S": "ABC"
+              }
+            }
+          },
+          "quantity": {
+            "N": "2"
+          },
+          "unitPurchasePrice": {
+            "N": "35"
+          }
+        }
+      },
+      {
+        "M": {
+          "extendedPurchasePrice": {
+            "N": "100"
+          },
+          "id": {
+            "S": "5"
+          },
+          "orderId": {
+            "S": "05a31fae-7305-4fba-814e-bbc52170cbb0"
+          },
+          "product": {
+            "M": {
+              "category": {
+                "M": {
+                  "id": {
+                    "S": "1"
+                  },
+                  "name": {
+                    "S": "Basketball"
+                  }
+                }
+              },
+              "id": {
+                "S": "2"
+              },
+              "name": {
+                "S": "DEF Product"
+              },
+              "price": {
+                "N": "100"
+              },
+              "sku": {
+                "S": "DEF"
+              }
+            }
+          },
+          "quantity": {
+            "N": "1"
+          },
+          "unitPurchasePrice": {
+            "N": "100"
+          }
+        }
+      }
+    ]
+  },
+  "orderDate": {
+    "S": "2019-09-07"
+  },
+  "purchaser": {
+    "M": {
+      "firstName": {
+        "S": "Santa"
+      },
+      "id": {
+        "S": "1"
+      },
+      "lastName": {
+        "S": "Claus"
+      }
+    }
+  },
+  "shipAddress": {
+    "M": {
+      "city": {
+        "S": "North Pole City"
+      },
+      "line1": {
+        "S": "Kris Kringle Road"
+      },
+      "postalCode": {
+        "S": "12345"
+      },
+      "state": {
+        "S": "North Pole"
+      }
+    }
+  },
+  "total": {
+    "N": "170"
+  }
+}

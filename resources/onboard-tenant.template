@@ -1,0 +1,234 @@
+---
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'AWS SaaS Factory Serverless SaaS Workshop - Lab 2: Onboard a new Tenant'
+Parameters:
+  TenantId:
+    Description: Tenant Unique Identifier
+    Type: String
+    MaxLength: 38
+  TenantRouteALBPriority:
+    Description: The priority to set this tenant's routing listener rule to
+    Type: Number
+    MinValue: 1
+    MaxValue: 50000
+  KeyPair:
+    Description: EC2 key pair for application servers
+    Type: AWS::EC2::KeyPair::KeyName
+  AMI:
+    Description: AMI for application server auto scaling group launch config
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  VPC:
+    Description: VPC to deploy tenant's infrastructure into
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnets:
+    Description: A list of private subnets to launch the application servers into
+    Type: List<AWS::EC2::Subnet::Id>
+  AppServerSecurityGroup:
+    Description: The security group to apply to the application servers
+    Type: AWS::EC2::SecurityGroup::Id
+  ALBListener:
+    Description: The ARN of the application load balancer listener to add the tenant routing rules to
+    Type: String
+  CodePipelineBucket:
+    Description: S3 bucket for CodePipeline to retrieve build artifacts from
+    Type: String
+  CodeDeployApplication:
+    Description: CodeDeploy application name that deploys to this tenant's application servers
+    Type: String
+  DeploymentGroup:
+    Description: CodeDeploy deployment group belonging to the CodeDeploy application to add this tenant's auto scaling group to
+    Type: String
+  LambdaUpdateDeploymentGroupArn:
+    Description: ARN of Lambda function to update the CodeDeploy deployment group to include this tenant's auto scaling group
+    Type: String
+  LambdaAddDatabaseUserArn:
+    Description: ARN of Lambda function to add the application user to this tenant's RDS cluster
+    Type: String
+Resources:
+  AppServerInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Join: ['', [!Select [0, !Split ['-', !Ref TenantId]], '-app-role-', !Ref 'AWS::Region']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName:
+            Fn::Join: ['', [!Select [0, !Split ['-', !Ref TenantId]], '-app-policy-', !Ref 'AWS::Region']]
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:Get*
+                  - s3:List*
+                Resource:
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}
+                  - !Sub arn:aws:s3:::${CodePipelineBucket}/*
+                  - !Sub arn:aws:s3:::aws-codedeploy-${AWS::Region}/*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                Resource:
+                  Fn::Join: ['', ['arn:aws:ssm:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':parameter/', !Select [0, !Split ['-', !Ref TenantId]], '*']]
+  AppServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref AppServerInstanceRole
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Select [0, !Split ['-', !Ref TenantId]]
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: '/health.html'
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Port: 8080
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: true
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: 86400
+      VpcId: !Ref VPC
+  AppServerApplicationLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join: ['', ['app-server-', !Select [0, !Split ['-', !Ref TenantId]], '-', !Ref 'AWS::Region']]
+      RetentionInDays: 30
+  AppServerLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      LaunchConfigurationName: !Select [0, !Split ['-', !Ref TenantId]]
+      ImageId: !Ref AMI
+      InstanceType: t2.micro
+      KeyName: !Ref KeyPair
+      SecurityGroups: [!Ref AppServerSecurityGroup]
+      IamInstanceProfile: !Ref AppServerInstanceProfile
+      UserData:
+        Fn::Base64:
+          !Join
+            - ''
+            - - "#!/bin/bash -xe\n"
+              - "yum update -y\n"
+              - "# We need CloudWatch Logs Agent, Ruby for the CodeDeploy installer, and Java to run our app\n"
+              - "yum install -y aws-cli awslogs jq ruby java-1.8.0-openjdk\n"
+              - "# Write the environment variables to disk\n"
+              - "echo export TENANT_ID="
+              - !Ref TenantId
+              - " > /etc/profile.d/saas.sh\n\n"
+              - "# Install the CodeDeploy agent\n"
+              - "cd /home/ec2-user\n"
+              - "curl -O https://aws-codedeploy-"
+              - !Ref 'AWS::Region'
+              - ".s3.amazonaws.com/latest/install\n"
+              - "chmod +x ./install\n"
+              - "./install auto\n\n"
+              - "# Point CloudWatch at the correct region\n"
+              - "sed -i s/us-east-1/"
+              - !Ref 'AWS::Region'
+              - "/g /etc/awslogs/awscli.conf\n\n"
+              - "# Add an entry for our app to the log agent config\n"
+              - "cat << 'EOF' >> /etc/awslogs/awslogs.conf\n"
+              - "\n"
+              - "[/home/ec2-user/application.log]\n"
+              - "datetime_format = %b %d %H:%M:%S\n"
+              - "file = /home/ec2-user/application.log\n"
+              - "buffer_duration = 5000\n"
+              - "log_stream_name = {instance_id}\n"
+              - "initial_position = start_of_file\n"
+              - "log_group_name = app-server-"
+              - !Select [0, !Split ['-', !Ref TenantId]]
+              - "-"
+              - !Ref 'AWS::Region'
+              - "\n\n[/home/ec2-user/application.log-merged]\n"
+              - "datetime_format = %b %d %H:%M:%S\n"
+              - "file = /home/ec2-user/application.log\n"
+              - "buffer_duration = 5000\n"
+              - "log_stream_name = merged\n"
+              - "initial_position = start_of_file\n"
+              - "log_group_name = app-server-"
+              - !Select [0, !Split ['-', !Ref TenantId]]
+              - "-"
+              - !Ref 'AWS::Region'
+              - "\nEOF\n\n"
+              - "systemctl enable awslogsd.service\n"
+              - "systemctl start awslogsd\n\n"
+  AppServerAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref PrivateSubnets
+      LaunchConfigurationName: !Ref AppServerLaunchConfig
+      MinSize: 2
+      MaxSize: 2
+      TargetGroupARNs: [!Ref ALBTargetGroup]
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join: ['', ['saas-factory-srvls-wrkshp-lab2-', !Select [0, !Split ['-', !Ref TenantId]]]]
+          PropagateAtLaunch: true
+  InvokeLambdaUpdateDeploymentGroup:
+    Type: Custom::CustomResource
+    DependsOn: AppServerAutoScalingGroup
+    Properties:
+      ServiceToken: !Ref LambdaUpdateDeploymentGroupArn
+      ApplicationName: !Ref CodeDeployApplication
+      DeploymentGroup: !Ref DeploymentGroup
+      AutoScalingGroup: !Ref AppServerAutoScalingGroup
+  TenantRoutingListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      Conditions:
+        - Field: http-header
+          HttpHeaderConfig:
+            HttpHeaderName: X-Tenant-ID
+            Values:
+              - !Ref TenantId
+      ListenerArn: !Ref ALBListener
+      Priority: !Ref TenantRouteALBPriority
+  InvokeLambdaAddDatabaseUser:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !Ref LambdaAddDatabaseUserArn
+      TenantId: !Ref TenantId
+...

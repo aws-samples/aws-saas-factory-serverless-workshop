@@ -1,0 +1,61 @@
+{
+  "id": "05a31fae-7305-4fba-814e-bbc52170cbb0",
+  "orderDate": "2019-09-07",
+  "shipDate": null,
+  "purchaser": {
+    "id": 1,
+    "firstName": "Santa",
+    "lastName": "Claus"
+  },
+  "shipAddress": {
+    "line1": "Kris Kringle Road",
+    "line2": null,
+    "city": "North Pole City",
+    "state": "North Pole",
+    "postalCode": "12345"
+  },
+  "billAddress": {
+    "line1": "Kris Kringle Road",
+    "line2": null,
+    "city": "North Pole City",
+    "state": "North Pole",
+    "postalCode": "12345"
+  },
+  "lineItems": [
+    {
+      "id": 3,
+      "orderId": "05a31fae-7305-4fba-814e-bbc52170cbb0",
+      "product": {
+        "id": 1,
+        "sku": "ABC",
+        "name": "ABC Product",
+        "price": 35,
+        "category": {
+          "id": 3,
+          "name": "Baseball"
+        }
+      },
+      "quantity": 2,
+      "unitPurchasePrice": 35,
+      "extendedPurchasePrice": 70
+    },
+    {
+      "id": 5,
+      "orderId": "05a31fae-7305-4fba-814e-bbc52170cbb0",
+      "product": {
+        "id": 2,
+        "sku": "DEF",
+        "name": "DEF Product",
+        "price": 100,
+        "category": {
+          "id": 1,
+          "name": "Basketball"
+        }
+      },
+      "quantity": 1,
+      "unitPurchasePrice": 100,
+      "extendedPurchasePrice": 100
+    }
+  ],
+  "total": 170
+}

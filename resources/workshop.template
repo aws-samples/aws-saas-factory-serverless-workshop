@@ -1,0 +1,202 @@
+---
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS SaaS Factory Serverless SaaS Workshop
+Parameters:
+  EEAssetsBucket:
+    Description: Event Engine assets bucket
+    Type: String
+  EEAssetsKeyPrefix:
+    Description: Event Engine asset bucket key prefix
+    Type: String
+  EETeamRoleArn:
+    Description: Event Engine TeamRole ARN
+    Type: String
+  SourceBucket:
+    Description: S3 bucket URL to copy objects from
+    Type: String
+    Default: aws-saas-factory-serverless-saas-workshop-us-west-2
+  SourceRegion:
+    Description: Region of source bucket
+    Type: String
+    Default: us-west-2
+  ObjectsToCopy:
+    Description: List of objects to copy from source bucket to destination bucket
+    Type: CommaDelimitedList
+    Default: BootstrapRDS.jar,SSMPutParamSecure.jar,ClearS3Bucket.jar,UpdateDeploymentGroup.jar,CreateKeyPair.jar,lab1.template,lab2.template,lab3.template,lab4.template,onboard-tenant.template
+  EventEngineRoleName:
+    Description: IAM role name of the Event Engine player role
+    Type: String
+    Default: TeamRole
+  DBName:
+    Description: RDS Database Name
+    Type: String
+    MinLength: 3
+    MaxLength: 31
+    AllowedPattern: ^[a-zA-Z]+[a-zA-Z0-9_\$]*$
+    ConstraintDescription: Database name must be between 3 and 31 characters in length
+    Default: saas_factory_srvls_wrkshp
+  DBMasterUsername:
+    Description: RDS Master Username
+    Type: String
+    Default: master
+  DBMasterPassword:
+    Description: RDS Master User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+    Default: ServerlessSaaSWorkshop
+  DBAppUsername:
+    Description: RDS Application Username
+    Type: String
+    Default: application
+  DBAppPassword:
+    Description: RDS Application User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+    Default: '6sNVV/Fcx@4c'
+Resources:
+  WorkshopS3Bucket:
+    Type: AWS::S3::Bucket
+  S3ObjectsExecutionRole:
+    Type: AWS::IAM::Role
+    DependsOn: WorkshopS3Bucket
+    Properties:
+      RoleName: !Sub saas-factory-srvls-wrkshp-s3-copy-role-${AWS::Region}
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-s3-copy-policy-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub arn:aws:s3:::${SourceBucket}/*
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:ListBucketVersions
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !Sub arn:aws:s3:::${WorkshopS3Bucket}
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                Resource:
+                  - !Sub arn:aws:s3:::${WorkshopS3Bucket}/*
+  CopyS3ObjectsLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-s3-copy-${AWS::Region}
+      RetentionInDays: 30
+  CopyS3Objects:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - CopyS3ObjectsLogs
+      - S3ObjectsExecutionRole
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-s3-copy-${AWS::Region}
+      Role: !GetAtt S3ObjectsExecutionRole.Arn
+      Runtime: java8
+      Timeout: 300
+      MemorySize: 384
+      Handler: com.amazon.aws.partners.saasfactory.CopyS3Objects
+      Code:
+        S3Bucket: !Ref EEAssetsBucket
+        S3Key: !Sub ${EEAssetsKeyPrefix}CopyS3Objects.jar
+  InvokeLambdaCopyS3Objects:
+    Type: Custom::CustomResource
+    DependsOn:
+      - CopyS3Objects
+    Properties:
+      ServiceToken: !GetAtt CopyS3Objects.Arn
+      Source: !Ref SourceBucket
+      SourceRegion: !Ref SourceRegion
+      Destination: !Ref WorkshopS3Bucket
+      DestinationRegion: !Ref AWS::Region
+      Objects: !Ref ObjectsToCopy
+  ClearS3BucketLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/saas-factory-srvls-wrkshp-s3-clear-${AWS::Region}
+      RetentionInDays: 30
+  ClearS3Bucket:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub saas-factory-srvls-wrkshp-s3-clear-${AWS::Region}
+      Role: !GetAtt S3ObjectsExecutionRole.Arn
+      Runtime: java8
+      Timeout: 30
+      MemorySize: 256
+      Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
+      Code:
+        S3Bucket: !Ref EEAssetsBucket
+        S3Key: !Sub ${EEAssetsKeyPrefix}ClearS3Bucket.jar
+  InvokeClearS3BucketWorkshopS3Bucket:
+    Type: Custom::CustomResource
+    DependsOn:
+      - ClearS3Bucket
+      - WorkshopS3Bucket
+    Properties:
+      ServiceToken: !GetAtt ClearS3Bucket.Arn
+      Bucket: !Ref WorkshopS3Bucket
+  lab1:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: InvokeLambdaCopyS3Objects
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${WorkshopS3Bucket}/lab1.template
+      Parameters:
+        EventEngineRole: !Ref EETeamRoleArn
+        EventEngineRoleName: !Ref EventEngineRoleName
+        WorkshopS3Bucket: !Ref WorkshopS3Bucket
+        DBName: !Ref DBName
+        DBMasterUsername: !Ref DBMasterUsername
+        DBMasterPassword: !Ref DBMasterPassword
+        DBAppUsername: !Ref DBAppUsername
+        DBAppPassword: !Ref DBAppPassword
+Outputs:
+  SaaSFactoryServerlessSaaSWorkshopStack:
+    Description: SaaS Factory Serverless SaaS Workshop CloudFormation stack
+    Value: !Ref AWS::StackName
+...

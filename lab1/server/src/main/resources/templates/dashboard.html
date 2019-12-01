@@ -1,0 +1,140 @@
+<!--
+Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html>
+<head>
+  <title>
+    Dashboard
+  </title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarBootcamp"
+        aria-controls="navbarBootcamp" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarBootcamp">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/products">Products</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/orders">Orders</span></a>
+          </li>
+        </ul>
+        <form th:if="${isAuthenticated}" class="form-inline my-2 my-lg-0">
+          <span th:text="'Welcome back, ' + ${username} ?: ''"></span>
+          <a class="btn btn-link" th:href="@{/logout}">Sign Out</a>
+        </form>
+      </div>
+    </nav>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="jumbotron">
+          <div class="container">
+            <div class="row">
+                <h2>Tenant Name</h2>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card bg-light text-black border-success" style="width: 18rem;">
+                        <div class=card-body>
+                            <div class="row">
+                                <div class="col">
+                                    <i class="fas fa-list-ol fa-5x" ></i>
+                                </div>
+                                <div class="col">
+                                    <p th:text="'Orders: ' + ${orderCount} ?: ''">Orders: 5</p>
+                                </div>
+                              </div>
+                            </div>
+                        <div class="card-footer bg-gray">
+                            <div class="row">
+                                <div class="col">
+                                  <a href="/orders" style="text-decoration: none;">Details <i class="fas fa-arrow-circle-right"></i></a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                <div class="col">
+                    <div class="card bg-light text-black border-success" style="width: 18rem">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <i class="fas fa-tags fa-5x"></i>
+                                </div>
+                                <div class="col">
+                                    <p th:text="'Products: ' + ${productCount} ?: ''">Products: 17</p>
+                                </div>
+                              </div>
+                            </div>
+                        <div class="card-footer bg-gray">
+                            <div class="row">
+                                <div class="col">
+                                    <a href="/products" style="text-decoration: none;">Details <i class="fas fa-arrow-circle-right"></i></a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                <div class="col">
+                    <div class="card bg-light text-black border-success" style="width: 18rem">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <i class="fas fa-chart-line fa-5x"></i>
+                                </div>
+                                <div class="col">
+                                    <p>Trend: <i th:class="'fas fa-long-arrow-alt-' + ${trend}"></i></p>
+                                </div>
+                              </div>
+                            </div>
+                        <div class="card-footer bg-gray">
+                            <div class="row">
+                                <div class="col">
+                                <a style="text-decoration: none" href="/dashboard">Details <i class="fas fa-arrow-circle-right"></i></a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">
+    <div class="container">
+      <h4><b>version 0.1</b> </h4>
+    </div>
+  </footer>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/scripts.js"></script>
+</body>
+</html>
