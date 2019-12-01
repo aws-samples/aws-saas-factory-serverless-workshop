@@ -46,7 +46,8 @@ public class ProductServiceDAL {
             "FROM product_categories x INNER JOIN product y ON x.product_id = y.product_id " +
             "GROUP BY x.product_id) AS pc " +
             "ON p.product_id = pc.product_id " +
-            "LEFT OUTER JOIN category AS c ON pc.category_id = c.category_id";
+            "LEFT OUTER JOIN category AS c ON pc.category_id = c.category_id" +
+            "WHERE p.tenant_id = ?";
     private final static String INSERT_PRODUCT_SQL = "INSERT INTO product (tenant_id, sku, product, price) VALUES (?, ?, ?, ?)";
     private final static String UPDATE_PRODUCT_SQL = "UPDATE product SET sku = ?, product = ?, price = ? WHERE tenant_id = ? AND product_id = ?";
     private final static String DELETE_PRODUCT_SQL = "DELETE FROM product WHERE tenant_id = ? AND product_id = ?";
@@ -107,10 +108,12 @@ public class ProductServiceDAL {
     }
 
     public List<Product> getProducts(Map<String, Object> event) {
+        UUID tenantId = UUID.fromString(new TokenManager().getTenantId(event));
         categoriesWorkaroundHack(event);
 
         List<Product> products = new ArrayList<>();
         try (PreparedStatement stmt = connection.prepareStatement(SELECT_PRODUCT_SQL)) {
+            stmt.setObject(1, tenantId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Product product = new Product();
@@ -129,11 +132,13 @@ public class ProductServiceDAL {
     }
 
     public Product getProduct(Map<String, Object> event, Integer productId) {
+        UUID tenantId = UUID.fromString(new TokenManager().getTenantId(event));
         Product product = null;
-        String sql = SELECT_PRODUCT_SQL.concat(" WHERE p.product_id = ?");
+        String sql = SELECT_PRODUCT_SQL.concat(" AND p.product_id = ?");
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             product = new Product();
-            stmt.setInt(1, productId);
+            stmt.setObject(1, tenantId);
+            stmt.setInt(2, productId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 product.setId(rs.getInt(1));
