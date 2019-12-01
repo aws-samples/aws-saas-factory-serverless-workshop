@@ -96,7 +96,7 @@ With this item selected you can select the <b>Listeners</b> tab in the lower sec
 
 <b>Step 9</b> – Now that we have the URL, we can access the application and verify that it works. Enter the URL we captured from the prior step and open the application. Our new React client is up and running and being served from S3 and cached at global edge locations by CloudFront. When the application opens it will appear as follows:
 
-<p align="center"><img src="../images/lab2/HomePage.png" alt="Homepage"/></p>
+<p align="center"><img src="../images/lab2/Homepage.png" alt="Homepage"/></p>
 
 This page looks remarkably like the application from the monolith solution that was used in Lab 1. While they look similar, in the real-world scenario, you'd likely redesign aspects of your UI during the rewrite with a modern UI framework. 
 

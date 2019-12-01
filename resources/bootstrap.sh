@@ -37,7 +37,7 @@ sudo yum install -y apache-maven
 # Pull a mirror of the repository and push it to the CodeCommit repository generated
 # for this workshop
 MY_REGION=$(aws configure list | grep region | awk '{print $2}')
-DIST_REPO=https://github.com/brtrvn/srvls.git
+DIST_REPO=https://github.com/aws-samples/aws-saas-factory-serverless-workshop.git
 
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
