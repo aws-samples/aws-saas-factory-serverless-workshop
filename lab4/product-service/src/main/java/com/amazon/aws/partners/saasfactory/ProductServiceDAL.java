@@ -46,7 +46,7 @@ public class ProductServiceDAL {
             "FROM product_categories x INNER JOIN product y ON x.product_id = y.product_id " +
             "GROUP BY x.product_id) AS pc " +
             "ON p.product_id = pc.product_id " +
-            "LEFT OUTER JOIN category AS c ON pc.category_id = c.category_id" +
+            "LEFT OUTER JOIN category AS c ON pc.category_id = c.category_id " +
             "WHERE p.tenant_id = ?";
     private final static String INSERT_PRODUCT_SQL = "INSERT INTO product (tenant_id, sku, product, price) VALUES (?, ?, ?, ?)";
     private final static String UPDATE_PRODUCT_SQL = "UPDATE product SET sku = ?, product = ?, price = ? WHERE tenant_id = ? AND product_id = ?";
