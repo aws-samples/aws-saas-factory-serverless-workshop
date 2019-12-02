@@ -130,7 +130,7 @@ This code extracts the order data from our incoming request. If the order is emp
 <b>Step 13</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
 
 ```
-cd ~/environment/saas-factory-serverless-workshop/lab3/order-service/
+cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab3/order-service/
 sh update-service.sh 
 ```
 
@@ -227,7 +227,7 @@ Your insertOrder method should look similar to this:
 <b>Step 19</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
 
 ```
-cd ~/environment/saas-factory-serverless-workshop/lab3/order-service/
+cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab3/order-service/
 sh update-service.sh 
 ```
 

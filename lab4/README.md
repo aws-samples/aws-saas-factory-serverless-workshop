@@ -28,7 +28,7 @@ The following is a breakdown of the step-by-step process for building out our ne
 <b>Step 1</b> - Let's deploy our new product microservice. As before, we have a script to execute which will build and upload all the pieces required for our Lambda functions and then kick off a CloudFormation stack to provision everything. Run the following commands in the terminal windows of your Cloud9 IDE to launch this script:
 ```
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/resources
-bash lab4.sh
+sh lab4.sh
 ```
 
 This will trigger a cloud formation stack creation. <b>Before proceeding make sure that lab4 stack has been created successfully as follows</b>:
