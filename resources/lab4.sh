@@ -84,6 +84,27 @@ echo "AuthService Sign In = $AUTH_SVC_SIGN_IN"
 TEMPLATE_URL="https://${WORKSHOP_BUCKET}.s3.amazonaws.com/lab4.template"
 echo "CloudFormation template URL = $TEMPLATE_URL"
 
+if [ -z "$WORKSHOP_STACK" ] \
+	|| [ -z "$WORKSHOP_BUCKET" ] \
+	|| [ -z "$RDS_SECURITY_GROUP" ] \
+	|| [ -z "$PRIVATE_SUBNETS" ] \
+	|| [ -z "$TENANT_SVC_GET_ALL" ] \
+	|| [ -z "$TENANT_SVC_GET_ID" ] \
+	|| [ -z "$TENANT_SVC_UPDATE" ] \
+	|| [ -z "$TENANT_SVC_INSERT" ] \
+	|| [ -z "$TENANT_SVC_DELETE" ] \
+	|| [ -z "$TENANT_SVC_NEXT_DB" ] \
+	|| [ -z "$TENANT_SVC_UPDATE_USER_POOL" ] \
+	|| [ -z "$ORDER_SVC_GET_ALL" ] \
+	|| [ -z "$ORDER_SVC_UPDATE" ] \
+	|| [ -z "$ORDER_SVC_INSERT" ] \
+	|| [ -z "$ORDER_SVC_DELETE" ] \
+	|| [ -z "$REG_SVC_REGISTER" ] \
+	|| [ -z "$AUTH_SVC_SIGN_IN" ]; then
+	echo "Missing required environment variables. Please make sure the lab3 CloudFormation stack has completed successfully."
+	exit 1
+fi
+
 # Build and upload the artifacts for Lab 4
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab4
 # Build the layer first because it is a dependency in the subsequent POMs

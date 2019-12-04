@@ -40,6 +40,11 @@ CLOUDFRONT_ID=$(aws cloudfront list-distributions | jq -r --arg cloudFrontDNS "$
 echo "CloudFront distribution ID = $CLOUDFRONT_ID"
 echo
 
+if [ -z "$API_GATEWAY_URL" ] || [ -z "$S3_WEBSITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION" ] || [ -z "$CLOUDFRONT_ID" ]; then
+	echo "Missing required environment variables. Please make sure the lab3 CloudFormation stack has completed successfully."
+	exit 1
+fi
+
 # Edit src/shared/config.js in the ReactJS codebase
 # set base_url to the REST API stage v1 invoke URL
 echo "Configuring React to talk to API Gateway"

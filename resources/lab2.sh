@@ -51,6 +51,17 @@ echo "Add database user Lambda = $LAMBDA_ARN"
 TEMPLATE_URL="https://${WORKSHOP_BUCKET}.s3.amazonaws.com/lab2.template"
 echo "CloudFormation template URL = $TEMPLATE_URL"
 
+if [ -z "$WORKSHOP_STACK" ] \
+	|| [ -z "$WORKSHOP_BUCKET" ] \
+	|| [ -z "$LOAD_BALANCER_SG" ] \
+	|| [ -z "$PUBLIC_SUBNETS" ] \
+	|| [ -z "$CODE_COMMIT_REPO" ] \
+	|| [ -z "$CODE_COMMIT_CLONE_URL" ] \
+	|| [ -z "$LAMBDA_ARN" ]; then
+	echo "Missing required environment variables. Please make sure the lab1 CloudFormation stack has completed successfully."
+	exit 1
+fi
+
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/resources
 for LAMBDA in $(ls -d */); do
 	if [ $LAMBDA != "custom-resources/" ]; then

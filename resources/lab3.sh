@@ -74,6 +74,25 @@ echo "LambdaWarmer = $LAMBDA_WARMER"
 TEMPLATE_URL="https://${WORKSHOP_BUCKET}.s3.amazonaws.com/lab3.template"
 echo "CloudFormation template URL = $TEMPLATE_URL"
 
+if [ -z "$WORKSHOP_STACK" ] \
+	|| [ -z "$WORKSHOP_BUCKET" ] \
+	|| [ -z "$LOAD_BALANCER_DNS" ] \
+	|| [ -z "$TENANT_SVC_GET_ALL" ] \
+	|| [ -z "$TENANT_SVC_GET_ID" ] \
+	|| [ -z "$TENANT_SVC_UPDATE" ] \
+	|| [ -z "$TENANT_SVC_INSERT" ] \
+	|| [ -z "$TENANT_SVC_DELETE" ] \
+	|| [ -z "$TENANT_SVC_NEXT_DB" ] \
+	|| [ -z "$TENANT_SVC_UPDATE_USER_POOL" ] \
+	|| [ -z "$REG_SVC_REGISTER" ] \
+	|| [ -z "$AUTH_SVC_SIGN_IN" ] \
+	|| [ -z "$CUSTOM_AUTHORIZER" ] \
+	|| [ -z "$AUTHORIZER_ROLE" ] \
+	|| [ -z "$LAMBDA_WARMER" ]; then
+	echo "Missing required environment variables. Please make sure the lab2 CloudFormation stack has completed successfully."
+	exit 1
+fi
+
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab3/order-service
 mvn
 aws s3 cp target/OrderService-lambda.zip s3://$WORKSHOP_BUCKET
