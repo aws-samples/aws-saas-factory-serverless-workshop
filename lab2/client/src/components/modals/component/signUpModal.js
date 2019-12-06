@@ -77,7 +77,8 @@ function SignUpModal(props) {
 
     const submitRegisterUser = event => {
         const form = event.currentTarget;
-        const verifyPasswordControl = document.getElementById('signUpformPasswordVerify');
+        const verifyPasswordControl = document.getElementById('signUpFormPasswordVerify');
+        const submitButton = document.getElementById('signUpFormSubmitButton');
         const user = {
             firstName,
             lastName,
@@ -100,6 +101,7 @@ function SignUpModal(props) {
             form.reportValidity();
             event.stopPropagation();
         } else {
+            submitButton.disabled = true;
             setValidated(true);
             registerUser(user);
         }
@@ -117,40 +119,40 @@ function SignUpModal(props) {
                         <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                            <Form.Group controlId="signUpformFirstName">
+                            <Form.Group controlId="signUpFormFirstName">
                                 <Form.Label>First Name</Form.Label>
                                 <Form.Control type="text" placeholder="FirstName" required {...bindFirstName} />
                             </Form.Group>
-                            <Form.Group controlId="signUpformLastName">
+                            <Form.Group controlId="signUpFormLastName">
                                 <Form.Label>Last Name</Form.Label>
                                 <Form.Control type="text" placeholder="LastName" required {...bindLastName} />
                             </Form.Group>
-                            <Form.Group controlId="signUpformEmail">
+                            <Form.Group controlId="signUpFormEmail">
                                 <Form.Label>Email Address</Form.Label>
                                 <Form.Control type="email" placeholder="EmailAddress" required {...bindEmail} />
                                 <Form.Text className="text-muted">
                                     {privacyMessage} <FontAwesomeIcon icon={faAward} />
                                 </Form.Text>
                             </Form.Group>
-                            <Form.Group controlId="signUpformPassword">
+                            <Form.Group controlId="signUpFormPassword">
                                 <Form.Label>Password</Form.Label>
                                 <Form.Control type="password" placeholder="Password" required pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])\S{8,}" {...bindPassword} />
                                 <Form.Text className="text-muted">
                                     At least 8 characters containing 1 uppercase, 1 lowercase, and 1 number
                                 </Form.Text>
                             </Form.Group>
-                            <Form.Group controlId="signUpformPasswordVerify">
+                            <Form.Group controlId="signUpFormPasswordVerify">
                                 <Form.Label>Verify Password</Form.Label>
                                 <Form.Control type="password" placeholder="Password" required pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])\S{8,}" {...bindVerifyPassword} />
                                 <Form.Control.Feedback type="invalid">
                                     The passwords you entered do not match. Please verify the passwords are the same.
                                 </Form.Control.Feedback>
                             </Form.Group>
-                            <Form.Group controlId="signUpformCompany">
+                            <Form.Group controlId="signUpFormCompany">
                                 <Form.Label>Company</Form.Label>
                                 <Form.Control type="text" placeholder="CompanyName" required {...bindCompany} />
                             </Form.Group>
-                            <Form.Group controlId="signUpformPlan">
+                            <Form.Group controlId="signUpFormPlan">
                                 <Form.Label>Plan</Form.Label>
                                 <Form.Control as="select" {...bindPlan} >
                                     {
@@ -163,7 +165,7 @@ function SignUpModal(props) {
                         <Button variant="secondary" onClick={closeModal}>
                             Close
                         </Button>
-                        <Button type="submit" variant="success">
+                        <Button type="submit" id="signUpFormSubmitButton" variant="success">
                             {buttonText}
                         </Button>
                     </Modal.Footer>
