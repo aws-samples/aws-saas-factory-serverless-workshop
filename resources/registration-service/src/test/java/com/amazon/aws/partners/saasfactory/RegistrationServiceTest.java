@@ -19,17 +19,26 @@ package com.amazon.aws.partners.saasfactory;
 import org.junit.Test;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
 public class RegistrationServiceTest {
 
-//    @Test
-//    public void generatePasswordTest() {
-//        for (int i = 0; i < 50; i++) {
-//            System.out.println(RegistrationService.generatePassword());
-//        }
-//    }
+    @Test
+    public void generatePasswordTest() {
+
+        Pattern regex = Pattern.compile("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).{8,}");
+        assertTrue(regex.matcher("ABCdef123").matches());
+        assertFalse(regex.matcher("abcdef123").matches());
+        assertFalse(regex.matcher("abcdefxzy").matches());
+        assertFalse(regex.matcher("1234567").matches());
+
+        for (int i = 0; i < 500; i++) {
+            String password = RegistrationService.generatePassword();
+            assertTrue("Invalid password " + password, regex.matcher(password).matches());
+        }
+    }
 
     @Test
     public void testRegistrationIsEmpty() {

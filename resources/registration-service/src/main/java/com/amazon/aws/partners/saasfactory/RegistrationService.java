@@ -472,21 +472,27 @@ public class RegistrationService implements RequestHandler<Map<String, Object>, 
     protected String createUser(Tenant tenant, Registration registration) {
         LOGGER.info("RegistrationService::createUser create Cognito user " + registration.getEmail());
         final String userPool = tenant.getUserPool();
-        AdminCreateUserResponse createUserResponse = cognito.adminCreateUser(request -> request
-                .userPoolId(userPool)
-                .username(registration.getEmail())
-                .userAttributes(
-                        AttributeType.builder().name("email").value(registration.getEmail()).build(),
-                        AttributeType.builder().name("family_name").value(registration.getLastName()).build(),
-                        AttributeType.builder().name("given_name").value(registration.getFirstName()).build(),
-                        AttributeType.builder().name("custom:tenant_id").value(tenant.getId().toString()).build(),
-                        AttributeType.builder().name("custom:company").value(registration.getCompany()).build(),
-                        AttributeType.builder().name("custom:plan").value(registration.getPlan()).build()
-                )
-                .temporaryPassword(generatePassword())
-                .desiredDeliveryMediumsWithStrings("EMAIL")
-                .messageAction("SUPPRESS")
-        );
+        AdminCreateUserResponse createUserResponse = null;
+        try {
+            createUserResponse = cognito.adminCreateUser(request -> request
+                    .userPoolId(userPool)
+                    .username(registration.getEmail())
+                    .userAttributes(
+                            AttributeType.builder().name("email").value(registration.getEmail()).build(),
+                            AttributeType.builder().name("family_name").value(registration.getLastName()).build(),
+                            AttributeType.builder().name("given_name").value(registration.getFirstName()).build(),
+                            AttributeType.builder().name("custom:tenant_id").value(tenant.getId().toString()).build(),
+                            AttributeType.builder().name("custom:company").value(registration.getCompany()).build(),
+                            AttributeType.builder().name("custom:plan").value(registration.getPlan()).build()
+                    )
+                    .temporaryPassword(generatePassword())
+                    .desiredDeliveryMediumsWithStrings("EMAIL")
+                    .messageAction("SUPPRESS")
+            );
+        } catch (SdkServiceException cognitoError) {
+            LOGGER.error("CognitoIdentity::AdminCreateUser", cognitoError);
+            LOGGER.error(getFullStackTrace(cognitoError));
+        }
         final UserType user = createUserResponse.user();
 
         LOGGER.info("RegistrationService::createUser setting password");
@@ -574,13 +580,38 @@ public class RegistrationService implements RequestHandler<Map<String, Object>, 
         return stackName;
     }
 
+    /**
+     * Generate a random password that matches the password policy of the Cognito user pool
+     * @return
+     */
     public static String generatePassword () {
-        final char[] chars = new char[]{'!', '#', '$', '%', '&', '*', '+', '-', '.', ':', '=', '?', '^', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+        // Split the classes of characters into separate buckets so we can be sure to use
+        // the correct amount of each type
+        final char[][] chars = {
+                {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'},
+                {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'},
+                {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+                {'!', '#', '$', '%', '&', '*', '+', '-', '.', ':', '=', '?', '^', '_'}
+        };
+
         final int passwordLength = 12;
         Random random = new Random();
         StringBuilder password = new StringBuilder(passwordLength);
-        for (int i = 0; i < passwordLength; i++) {
-            password.append(chars[random.nextInt(chars.length)]);
+
+        // Randomly select one character from each of the required character types
+        ArrayList<Integer> requiredCharacterBuckets = new ArrayList<>(3);
+        requiredCharacterBuckets.add(0, 0);
+        requiredCharacterBuckets.add(1, 1);
+        requiredCharacterBuckets.add(2, 2);
+        while (!requiredCharacterBuckets.isEmpty()) {
+            Integer randomRequiredCharacterBucket = requiredCharacterBuckets.remove(random.nextInt(requiredCharacterBuckets.size()));
+            password.append(chars[randomRequiredCharacterBucket][random.nextInt(chars[randomRequiredCharacterBucket].length)]);
+        }
+
+        // Fill out the rest of the password with randomly selected characters
+        for (int i = 0; i < passwordLength - 3; i++) {
+            int characterBucket = random.nextInt(chars.length);
+            password.append(chars[characterBucket][random.nextInt(chars[characterBucket].length)]);
         }
         return password.toString();
     }
