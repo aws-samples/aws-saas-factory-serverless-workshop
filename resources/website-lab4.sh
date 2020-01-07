@@ -34,13 +34,9 @@ echo "S3 website bucket = $S3_WEBSITE_BUCKET"
 
 CLOUDFRONT_DISTRIBUTION=$(echo $STACK_OUTPUTS | jq -r 'select(.OutputKey == "CloudFrontDistributionDNS") | .OutputValue')
 echo "CloudFront distribution URL = $CLOUDFRONT_DISTRIBUTION"
-
-CLOUDFRONT_DNS=$(echo $CLOUDFRONT_DISTRIBUTION | sed -r -e 's|https://(.*)|\1|g')
-CLOUDFRONT_ID=$(aws cloudfront list-distributions | jq -r --arg cloudFrontDNS "${CLOUDFRONT_DNS}" '.DistributionList.Items[] | select(.DomainName == "\($cloudFrontDNS)") | .Id')
-echo "CloudFront distribution ID = $CLOUDFRONT_ID"
 echo
 
-if [ -z "$API_GATEWAY_URL" ] || [ -z "$S3_WEBSITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION" ] || [ -z "$CLOUDFRONT_ID" ]; then
+if [ -z "$API_GATEWAY_URL" ] || [ -z "$S3_WEBSITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION" ]; then
 	echo "Missing required environment variables. Please make sure the lab4 CloudFormation stack has completed successfully."
 	exit 1
 fi
@@ -59,16 +55,14 @@ echo
 echo "Building React app"
 npm run build
 
+# Setting the cache control metadata so that we don't have to invalidate
+# (and wait for) the CloudFront distribution. You wouldn't do this in real life.
 echo
 echo "Uploading React app to S3 website bucket"
 cd build
-aws s3 sync --delete --acl public-read . s3://$S3_WEBSITE_BUCKET
+aws s3 sync --delete --cache-control no-store --acl public-read . s3://$S3_WEBSITE_BUCKET
 
 echo
-echo "Invalidating CloudFront distribution cache"
-aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths /\*
-
-echo
-echo "Wait for invalidation to complete, then access your website at..."
+echo "Access your website at..."
 echo $CLOUDFRONT_DISTRIBUTION
 echo

@@ -40,7 +40,7 @@ sh lab3.sh
 
 This will trigger a cloud formation stack creation. <b>Before proceeding make sure that lab3 stack has been created successfully as follows</b>:
 
-<p align="center"><img src="../images/lab3/Cloudformation.png" alt="Cloud Formation"/></p>
+<p align="center"><img src="../images/lab3/CloudFormation.png" alt="Cloud Formation"/></p>
 
 <b>Step 3</b> - <b>You must confirm that the lab3 CloudFormation stack has completed successfully before continuing</b>. We will now update our React client to use the new endpoints created as part of above CloudFormation stack. Update your website by running following commands:
 ```
@@ -48,39 +48,35 @@ cd /home/ec2-user/environment/saas-factory-serverless-workshop/resources
 sh website-lab3.sh
 ```
 
-<b>Step 4</b> - Just like at the end of Lab 2, the website deployment script will trigger a CloudFront cache invalidation. We must wait for the invalidation to complete before we can continue. Go to the CloudFront service in the console. Click on the distribution for this workshop as you have before and then click on the <b>Invalidations</b> tab. Wait until the listed invalidation shows a <b>Status</b> of <b>Completed</b>.
-
-<p align="center"><img src="../images/lab3/Cloudfront.png" alt="Cloud Front"/></p>
-
-<b>Step 5</b> – Now we can go verify that our new Order service has been deployed. Open the Lambda service within the AWS console. You'll be presented with a list of all of your functions. Enter <b>saas-factory-srvls-wrkshp-orders</b> into the filter box above the list of functions to narrow this list to those that we've deployed. Here you'll notice that there are separate functions for each of the operations of our Order service. Each one corresponds to a REST operation (GET, PUT, DELETE, etc.). This confirms that our service has been deployed.
+<b>Step 4</b> – Now we can go verify that our new Order service has been deployed. Open the Lambda service within the AWS console. You'll be presented with a list of all of your functions. Enter <b>saas-factory-srvls-wrkshp-orders</b> into the filter box above the list of functions to narrow this list to those that we've deployed. Here you'll notice that there are separate functions for each of the operations of our Order service. Each one corresponds to a REST operation (GET, PUT, DELETE, etc.). This confirms that our service has been deployed.
 
 <p align="center"><img src="../images/lab3/LambdaFunctions.png" alt="Lambda Functions"/></p>
 
-<b>Step 6</b> – The functions are in place. Now we need to verify that the API Gateway has mapped an entry to these functions to route traffic to this serverless microservice (instead of the monolith we were using before). Navigate to the API Gateway service in the AWS console. Select the <b>saas-factory-srvls-wrkshp-lab3</b> API from the list. This should display a list of resources that are configured for this API that appears as follows:
+<b>Step 5</b> – The functions are in place. Now we need to verify that the API Gateway has mapped an entry to these functions to route traffic to this serverless microservice (instead of the monolith we were using before). Navigate to the API Gateway service in the AWS console. Select the <b>saas-factory-srvls-wrkshp-lab3</b> API from the list. This should display a list of resources that are configured for this API that appears as follows:
 
 <p align="center"><img src="../images/lab3/APIGatewayOrderService.png" alt="Order Service"/></p>
 
 Here you'll see the basic CRUD operations that are enabled as resources in our API Gateway. There are GET and POST resources which don't require parameters. There is also a /{id} route that adds an identifier to the resource to enable GET, DELETE, and PUT operations on individual orders.
 
-<b>Step 7</b> – Now we can verify that these REST resource methods are mapped entry to these functions to route traffic to this serverless microservice (instead of the monolith we were using before). Select the <b>GET</b> method under the <b>/orders</b> resource to access the configuration for the GET orders operation. You will see that this method shows <b>LAMBDA_PROXY</b> for the Integration Request type. This will display a view similar to the following:
+<b>Step 6</b> – Now we can verify that these REST resource methods are mapped entry to these functions to route traffic to this serverless microservice (instead of the monolith we were using before). Select the <b>GET</b> method under the <b>/orders</b> resource to access the configuration for the GET orders operation. You will see that this method shows <b>LAMBDA_PROXY</b> for the Integration Request type. This will display a view similar to the following:
 
 <p align="center"><img src="../images/lab3/OrderService.png" alt="Order Service"/></p>
 
-<b>Step 8</b> – Finally, we can verify which that the correct Lambda function is the one being proxied. Select the <b>Integration Request</b> title from the top of the box at the right. This will display a view similar to the following:
+<b>Step 7</b> – Finally, we can verify which that the correct Lambda function is the one being proxied. Select the <b>Integration Request</b> title from the top of the box at the right. This will display a view similar to the following:
 
 <p align="center"><img src="../images/lab3/OrderServiceIntegrationRequest.png" alt="Order Service Integration Request"/></p>
 
 The key piece of information here is the Lambda Function. The value for this attribute should map directly to our getOrders() Lambda function that we deployed earlier. The function will be named <b>saas-factory-srvls-wrkshp-orders-get-all-[REGION]</b>.
 
-<b>Step 9</b> – We've confirmed that our API Gateway and Lambda functions appear to have landed and been configured correctly. Now let's go perform an operation in the application to verify that these new functions are working. We intentionally didn't carry forward any data for the Order Service from our monolith database so we're starting with an empty database.
+<b>Step 8</b> – We've confirmed that our API Gateway and Lambda functions appear to have landed and been configured correctly. Now let's go perform an operation in the application to verify that these new functions are working. We intentionally didn't carry forward any data for the Order Service from our monolith database so we're starting with an empty database.
 
 Open the application using the URL you've previously saved for your modern application and sign-in with one of the tenants you're previously created. Before we can add an order to our system, we must have at least one product in our catalog. Click on the <b>Products</b> link in the navigation header to confirm that you have a product. If you do not have any products, add one now.
 
-<b>Step 10</b> - Now, navigate to the <b>Orders</b> menu item in the navigation header and select <b>Add Order</b> from the page that is displayed. Fill out the form that is displayed with some mock order information and save the order by selecting the <b>Add Order</b> button. Oops! What happened? Let's go take a look at our Order service to see what went wrong.
+<b>Step 9</b> - Now, navigate to the <b>Orders</b> menu item in the navigation header and select <b>Add Order</b> from the page that is displayed. Fill out the form that is displayed with some mock order information and save the order by selecting the <b>Add Order</b> button. Oops! What happened? Let's go take a look at our Order service to see what went wrong.
 
 <p align="center"><img src="../images/lab3/404Error.png" alt="404 Error"/></p>
 
-<b>Step 11</b> – Let's start by examining the code of our Order service. Open the Cloud9 IDE in the AWS console and select the <b>Serverless SaaS Workshop IDE</b>. Using the file tree in the left-hand window pane, open the <b>lab3/order-service/src/main/java</b> path to see the different classes that make up the Order service. Double-click on the <b>OrderService.java</b> file to view its contents and locate the <b>insertOrder</b> menthod within the Java class. The function will appear as follows:
+<b>Step 10</b> – Let's start by examining the code of our Order service. Open the Cloud9 IDE in the AWS console and select the <b>Serverless SaaS Workshop IDE</b>. Using the file tree in the left-hand window pane, open the <b>lab3/order-service/src/main/java</b> path to see the different classes that make up the Order service. Double-click on the <b>OrderService.java</b> file to view its contents and locate the <b>insertOrder</b> menthod within the Java class. The function will appear as follows:
 
 ```java
 public APIGatewayProxyResponseEvent insertOrder(Map<String, Object> event, Context context) {
@@ -103,7 +99,7 @@ public APIGatewayProxyResponseEvent insertOrder(Map<String, Object> event, Conte
 
 In looking at this function more closely, you'll discover that the function isn't actually finished. There's a to-do note saying we need to call the data access layer to actually save the order object. Currently, the method is returning an HTTP 404 error.
 
-<b>Step 12</b> – To get our insertOrder() method working, we'll need to add the code that inserts an order into the database. Copy and paste the following code so your insertOrder method matches.
+<b>Step 11</b> – To get our insertOrder() method working, we'll need to add the code that inserts an order into the database. Copy and paste the following code so your insertOrder method matches.
 
 ```java
 public APIGatewayProxyResponseEvent insertOrder(Map<String, Object> event, Context context) {
@@ -127,18 +123,18 @@ public APIGatewayProxyResponseEvent insertOrder(Map<String, Object> event, Conte
 
 This code extracts the order data from our incoming request. If the order is empty, we return with an Invalid Request status code of 400. Otherwise, we call our data access layer (DAL) to insert the order into the database and return a status code of 200.
 
-<b>Step 13</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
+<b>Step 12</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
 
 ```
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab3/order-service/
 sh update-service.sh 
 ```
 
-<b>Step 14</b> – The updated version of our insertOrder() function is now in place. Let's go open the application again (using the URL you retrieved earlier), login using the tenant you had used earlier, and access the <b>Orders</b> item in the menu. Select the <b>Add Order</b> button from the page and enter an order into the form that is displayed. When you are done entering the order select the <b>Add Order</b> button from the form. You should now see that your order appears in the list of orders on the page, confirming that our fix appears to have worked.
+<b>Step 13</b> – The updated version of our insertOrder() function is now in place. Let's go open the application again (using the URL you retrieved earlier), login using the tenant you had used earlier, and access the <b>Orders</b> item in the menu. Select the <b>Add Order</b> button from the page and enter an order into the form that is displayed. When you are done entering the order select the <b>Add Order</b> button from the form. You should now see that your order appears in the list of orders on the page, confirming that our fix appears to have worked.
 
 <p align="center"><img src="../images/lab3/AddOrderSuccess.png" alt="Add Order"/></p>
 
-<b>Step 15</b> – As part of moving to this new microservice, we also had to remove our dependency on the database monolith where orders had previously been shared in one large database used by all services. Extracting this data from the monolith is essential to our microservices story. Each of our microservices must own the data that it manages to limit coupling and enable autonomy. When we move this data out of the monolith, it also gives us the opportunity to determine what service and multi-tenant storage strategy will best fit the multi-tenant requirements of our microservice. 
+<b>Step 14</b> – As part of moving to this new microservice, we also had to remove our dependency on the database monolith where orders had previously been shared in one large database used by all services. Extracting this data from the monolith is essential to our microservices story. Each of our microservices must own the data that it manages to limit coupling and enable autonomy. When we move this data out of the monolith, it also gives us the opportunity to determine what service and multi-tenant storage strategy will best fit the multi-tenant requirements of our microservice. 
 
 In this case, we're looking at how we want to represent our order data that will be managed by our order management microservice. Should we silo the data for each tenant? Should it be pooled (share a common table/database)? What are its isolation requirements? These are all questions we need to answer. For this solution, we've decided to move the order data to DynamoDB and use a NoSQL representation. However, for isolation reasons, we've opted to put the data in separate tables for each tenant. Below is a conceptual model of the data representation for the order service:
 
@@ -150,13 +146,13 @@ To see this in action, let's now go look at the data that was added via our new 
 
 You'll see that there are two tables here, one for each tenant in our system. Your list of tables will vary based on the tenants you've introduced. 
 
-<b>Step 16</b> – Now we need to verify that the order we created landed in a DynamoDB table. Select the table named <b>order_fulfillment_[TENANT_ID]</b>. Once you select your table, you'll get a view with a list of tabs with information about your table. Select the <b>Items</b> tab to view the list of the items in that table. The view will be similar to the following:
+<b>Step 15</b> – Now we need to verify that the order we created landed in a DynamoDB table. Select the table named <b>order_fulfillment_[TENANT_ID]</b>. Once you select your table, you'll get a view with a list of tabs with information about your table. Select the <b>Items</b> tab to view the list of the items in that table. The view will be similar to the following:
 
 <p align="center"><img src="../images/lab3/ItemsTable.png" alt="Items Table"/></p>
 
 In this example, our table had one order item. You can drill into any item in this list to get more detail on that item.
 
-<b>Step 17</b> – This tenant-per-table partitioning model uses the context of the current tenant identifier (passed in the JWT token) to generate our table name. Let's look at how this is resolved in the code of our application service. Go back to the files for the lab 3 order service in Cloud8. Open the Cloud9 IDE in the AWS console and select <b>Serverless SaaS Workshop IDE</b>. Using the file tree in the left-hand window pane, open the <b>lab3/order-service/src/main/java</b> path to see the different classes that make up the Order service. Double-click on the <b>OrderServiceDAL.java</b> file and look at the <b>insertOrder()</b> method. The code will appear as follows:
+<b>Step 16</b> – This tenant-per-table partitioning model uses the context of the current tenant identifier (passed in the JWT token) to generate our table name. Let's look at how this is resolved in the code of our application service. Go back to the files for the lab 3 order service in Cloud8. Open the Cloud9 IDE in the AWS console and select <b>Serverless SaaS Workshop IDE</b>. Using the file tree in the left-hand window pane, open the <b>lab3/order-service/src/main/java</b> path to see the different classes that make up the Order service. Double-click on the <b>OrderServiceDAL.java</b> file and look at the <b>insertOrder()</b> method. The code will appear as follows:
 
 ```java
 public Order insertOrder(Map<String, Object> event, Order order) {
@@ -214,7 +210,7 @@ private String tableName(Map<String, Object> event) {
 
 You'll notice that the very first thing this code does is make a call to the TokenManager to get our current tenant identifier from the supplied JWT token. It then creates and table name that is the concatenation of <b>order_fulfillment_</b> and the tenant id we retrieved. This ensures that each table name is unique for each tenant. If a DynamoDB table with that name doesn't yet exist, one is created on-the-fly.
 
-<b>Step 18</b> – In order to simplify our ability (for this lab) to identify activity for tenant, we're going to add a bit of logging detail to our order service to include this information. Scroll back up to the insertOrder() method in our OrderServiceDAL.java file. Let's add a logging statement after retrieving the table name for the current tenant. Add this line to your method right after calling the tableName method and right before getting the PutItemResponse from DynamoDB.
+<b>Step 17</b> – In order to simplify our ability (for this lab) to identify activity for tenant, we're going to add a bit of logging detail to our order service to include this information. Scroll back up to the insertOrder() method in our OrderServiceDAL.java file. Let's add a logging statement after retrieving the table name for the current tenant. Add this line to your method right after calling the tableName method and right before getting the PutItemResponse from DynamoDB.
 
 ```java
 LOGGER.info("OrderServiceDAL::insertOrder TableName = " + tableName);
@@ -224,20 +220,20 @@ Your insertOrder method should look similar to this:
 
 <p align="center"><img src="../images/lab3/AddLoggingToInsertOrder.png" alt="Logging Statement"/></p>
 
-<b>Step 19</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
+<b>Step 18</b> – Be sure to save your changes with the Ctrl-S keyboard shortcut or by selecting <b>Save</b> from the <b>File</b> menu in Cloud9. With our new code introduced, we now need to deploy this updated function to the Lambda service. Run the following commands to invoke this update:
 
 ```
 cd /home/ec2-user/environment/saas-factory-serverless-workshop/lab3/order-service/
 sh update-service.sh 
 ```
 
-<b>Step 20</b> – The last step in validating our change is to run the actual application and verify that our new logging call is recording the tenant table name. Open the application (using same CloudFront URL as before), sign-in with your credentials, and access the Orders link at the top of the page. Select the <b>Add Order</b> button from the orders page and enter a new order into the form. Now select <b>Add Order</b> on the new order form to save the order.
+<b>Step 19</b> – The last step in validating our change is to run the actual application and verify that our new logging call is recording the tenant table name. Open the application (using same CloudFront URL as before), sign-in with your credentials, and access the Orders link at the top of the page. Select the <b>Add Order</b> button from the orders page and enter a new order into the form. Now select <b>Add Order</b> on the new order form to save the order.
 
-<b>Step 21</b> – Finally, to see the impact of our change, we'll need to view the log files for our function. Open the CloudWatch service in the AWS console and select <b>Log groups</b> from the navigation pane on the left of the page. This will display a list of multiple log groups. To narrow the list, enter <b>/aws/lambda/saas-factory-srvls-wrkshp-orders-insert</b> into the filters box at the top of the function list. Now, select the function name shown in the list. This will display a list of log streams for the selected function that will be similar to the following:
+<b>Step 20</b> – Finally, to see the impact of our change, we'll need to view the log files for our function. Open the CloudWatch service in the AWS console and select <b>Log groups</b> from the navigation pane on the left of the page. This will display a list of multiple log groups. To narrow the list, enter <b>/aws/lambda/saas-factory-srvls-wrkshp-orders-insert</b> into the filters box at the top of the function list. Now, select the function name shown in the list. This will display a list of log streams for the selected function that will be similar to the following:
 
 <p align="center"><img src="../images/lab3/CloudWatchLogs.png" alt="CloudWatch Logs"/></p>
 
-<b>Step 22</b> – Click on the top log stream to access the log file contents. Once you're in the log, you'll need to search for your newly inserted log file. Ultimately, you will be able to locate the DynamoDB table name that was associated with the order creation that you performed.
+<b>Step 21</b> – Click on the top log stream to access the log file contents. Once you're in the log, you'll need to search for your newly inserted log file. Ultimately, you will be able to locate the DynamoDB table name that was associated with the order creation that you performed.
 
 <p align="center"><img src="../images/lab3/CloudWatchLogStream.png" alt="CloudWatch Log Stream"/></p>
 

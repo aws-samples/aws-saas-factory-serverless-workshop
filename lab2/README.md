@@ -209,10 +209,6 @@ cd /home/ec2-user/environment/saas-factory-serverless-workshop/resources
 sh website-lab2.sh
 ```
 
-Because we had previously deployed our client application, CloudFront has cached a copy of the JavaScript in its edge locations. We must wait for the CloudFront distribution cache to be cleared before we can continue. Navigate to the CloudFront service in the console and find the distribution just as you did earlier in this lab. The distribution origin will follow the pattern <b>[StackID]-lab1-[RANDOM]-websitebucket-[RANDOM].s3-website-[REGION].amazonaws.com</b>. Click on the distribution and then click on the <b>Invalidations</b> tab. Wait until the listed invalidation shows a <b>Status</b> of <b>Completed</b>.
-
-<p align="center"><img src="../images/lab2/CloudFrontInvalidations.png" alt="CloudFront Invalidations"/></p>
-
 <b>Step 23</b> – Now, let's navigate back to the application and attempt to delete the product again (using the URL and credentials we used above). Be sure to <b><i>refresh your web browser</i></b> to force it to pull down a fresh copy of the JavaScript you just fixed. Our updates now have the React client submitting our delete action. However, despite our changes, delete is still not working.
 
 <p align="center"><img src="../images/lab2/ProductDeleteError.png" alt="Product Delete Error"/></p>
