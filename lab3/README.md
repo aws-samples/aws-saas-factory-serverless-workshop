@@ -62,7 +62,7 @@ Here you'll see the basic CRUD operations that are enabled as resources in our A
 
 <p align="center"><img src="../images/lab3/OrderService.png" alt="Order Service"/></p>
 
-<b>Step 7</b> – Finally, we can verify which that the correct Lambda function is the one being proxied. Select the <b>Integration Request</b> title from the top of the box at the right. This will display a view similar to the following:
+<b>Step 7</b> – Finally, we can verify that the correct Lambda function is the one being proxied. Select the <b>Integration Request</b> title from the top of the box at the right. This will display a view similar to the following:
 
 <p align="center"><img src="../images/lab3/OrderServiceIntegrationRequest.png" alt="Order Service Integration Request"/></p>
 
