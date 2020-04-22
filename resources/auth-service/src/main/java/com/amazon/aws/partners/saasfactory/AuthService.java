@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
@@ -31,10 +32,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,38 +78,53 @@ public class AuthService implements RequestHandler<Map<String, Object>, APIGatew
                 String username = signin.get("username");
                 String password = signin.get("password");
 
-                String userPoolId = findUserPool(username);
+//                String userPoolId = findUserPool(username);
+                List<String> userPoolIds = findUserPools(username);
+
+
+                String userPoolId = userPoolIds.get(0);
                 String appClientId = appClient(userPoolId);
-                AdminInitiateAuthResponse authResponse = cognito.adminInitiateAuth(request -> request
-                        .userPoolId(userPoolId)
-                        .clientId(appClientId)
-                        .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
-                        .authParameters(Stream.of(
-                                new AbstractMap.SimpleEntry<String, String>("USERNAME", username),
-                                new AbstractMap.SimpleEntry<String, String>("PASSWORD", password)
-                                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                        )
-                );
-                String challenge = authResponse.challengeNameAsString();
-                if (challenge != null && !challenge.isEmpty()) {
-                    error.put("message", challenge);
+                AdminInitiateAuthResponse authResponse = null;
+                try {
+                    authResponse = cognito.adminInitiateAuth(request -> request
+                            .userPoolId(userPoolId)
+                            .clientId(appClientId)
+                            .authFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
+                            .authParameters(Stream.of(
+                                    new AbstractMap.SimpleEntry<String, String>("USERNAME", username),
+                                    new AbstractMap.SimpleEntry<String, String>("PASSWORD", password)
+                                    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                            )
+                    );
+
+                    String challenge = authResponse.challengeNameAsString();
+                    if (challenge != null && !challenge.isEmpty()) {
+                        error.put("message", challenge);
+                        response = new APIGatewayProxyResponseEvent()
+                                .withBody(toJson(error))
+                                .withStatusCode(401);
+                    } else {
+                        AuthenticationResultType auth = authResponse.authenticationResult();
+                        CognitoAuthResult result = CognitoAuthResult.builder()
+                                .accessToken(auth.accessToken())
+                                .idToken(auth.idToken())
+                                .expiresIn(auth.expiresIn())
+                                .refreshToken(auth.refreshToken())
+                                .tokenType(auth.tokenType())
+                                .build();
+
+                        response = new APIGatewayProxyResponseEvent()
+                                .withBody(toJson(result))
+                                .withHeaders(CORS)
+                                .withStatusCode(200);
+                    }
+                } catch (SdkServiceException cognitoError) {
+                    LOGGER.error("CognitoIdentity::AdminInitiateAuth", cognitoError);
+                    LOGGER.error(getFullStackTrace(cognitoError));
+                    error.put("message", cognitoError.getMessage());
                     response = new APIGatewayProxyResponseEvent()
                             .withBody(toJson(error))
                             .withStatusCode(401);
-                } else {
-                    AuthenticationResultType auth = authResponse.authenticationResult();
-                    CognitoAuthResult result = CognitoAuthResult.builder()
-                            .accessToken(auth.accessToken())
-                            .idToken(auth.idToken())
-                            .expiresIn(auth.expiresIn())
-                            .refreshToken(auth.refreshToken())
-                            .tokenType(auth.tokenType())
-                            .build();
-
-                    response = new APIGatewayProxyResponseEvent()
-                            .withBody(toJson(result))
-                            .withHeaders(CORS)
-                            .withStatusCode(200);
                 }
             } else {
                 error.put("message", "request body invalid");
@@ -129,7 +142,8 @@ public class AuthService implements RequestHandler<Map<String, Object>, APIGatew
         return response;
     }
 
-    protected String findUserPool(String username) {
+    protected List<String> findUserPools(String username) {
+        List<String> poolsWithUsername = new ArrayList<>();
         String userPoolId = null;
         ListUserPoolsResponse userPoolsResponse = cognito.listUserPools(request -> request.maxResults(60));
         List<UserPoolDescriptionType> userPools = userPoolsResponse.userPools();
@@ -141,28 +155,33 @@ public class AuthService implements RequestHandler<Map<String, Object>, APIGatew
                 List<UserType> users = usersResponse.users();
                 if (users != null) {
                     for (UserType user : users) {
-//                        Map<String, String> attributes = user.attributes()
-//                                .stream()
-//                                .map(a -> new AbstractMap.SimpleEntry<String, String>(a.name(), a.value()))
-//                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//                        CognitoUser cognitoUser = CognitoUser.builder()
-//                                .username(user.username())
-//                                .status(user.userStatusAsString())
-//                                .attributes(attributes)
-//                                .build();
-//                        try {
-//                            LOGGER.info(MAPPER.writeValueAsString(cognitoUser));
-//                        } catch (Exception e) {
-//                        }
+                        Map<String, String> attributes = user.attributes()
+                                .stream()
+                                .map(a -> new AbstractMap.SimpleEntry<String, String>(a.name(), a.value()))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        CognitoUser cognitoUser = CognitoUser.builder()
+                                .username(user.username())
+                                .status(user.userStatusAsString())
+                                .attributes(attributes)
+                                .build();
+                        try {
+                            LOGGER.info(MAPPER.writeValueAsString(cognitoUser));
+                        } catch (Exception e) {
+                        }
                         if (username.equals(user.username())) {
                             userPoolId = userPool.id();
-                            break;
+                            poolsWithUsername.add(userPoolId);
+//                            break;
                         }
                     }
                 }
             }
         }
-        return userPoolId;
+//        return userPoolId;
+        for (String poolId : poolsWithUsername) {
+            LOGGER.info("Username " + username + " in pool " + poolId + "\n");
+        }
+        return poolsWithUsername;
     }
 
     protected String appClient(String userPoolId) {
