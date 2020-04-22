@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolver;
+import io.jsonwebtoken.impl.Base64Codec;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -80,5 +81,24 @@ public class AuthorizerTest {
                 .getBody();
 
         claims.forEach((k, v) -> System.out.format("%s => %s%n", k, v));
+    }
+
+    @Test
+    public void testGetTenantId() {
+        System.out.println("testGetTenantId");
+        String bearerToken = "eyJraWQiOiJzSEJIN1BGOGs1QTV5WTVJR3NFMEpXK3ZuN1wvWnViNVZVbGhjTHZoR2k2QT0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJiOWYwZTAzNS1kYTFmLTRmYzAtYTllNi0yNDNlZGVjYTJkYTUiLCJhdWQiOiI1bTNpcmQ2bWJ2cjk0cTNnMGc3ZXFxdWhkciIsImN1c3RvbTppZGVudGl0eV9wb29sIjoidXMtd2VzdC0yOjAyMGIxNDRmLWE0ZGQtNDI0Zi05ZTY3LWNlY2E5MDBiMDdlNSIsImV2ZW50X2lkIjoiMTIzMGQ1NGMtZjk4My00YWUzLTgxNTItMWVmNDI5MmVjMzE4IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE1NzkzNzM1OTgsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy13ZXN0LTIuYW1hem9uYXdzLmNvbVwvdXMtd2VzdC0yX0NBMllSdVZneCIsImNvZ25pdG86dXNlcm5hbWUiOiJ1c2VyQHRlbmFudGQxMGUyZGY2LmNvbSIsImN1c3RvbTp0ZW5hbnRfaWQiOiJkMTBlMmRmNi01Y2FjLTRkM2UtOTVlYS0wZjJjODExZGYyMGUiLCJleHAiOjE1NzkzNzcxOTgsImlhdCI6MTU3OTM3MzU5OH0.EcpcTEQkoh8hZxbnklg8gw8HeyGbxJhqAm8fs1hLUxM2jzW3JWTIvDzjcO_adQilZZ26TFJbOxsBXbL6d7nPSMMWTqebJmtnTuYfS3KmgdWm6i7DaBMnnLgm1a2PpZ1Ks3Cyz45bhT-6LKLecklRKaHuf9MxlhM9_GV76v0I6RGYKfRtv6gL21dQ4MnsW2jel9Zsf0moNd6murYH-tp2Ax70yGJF2e4Yn-cap2USJjK5_ly9Rnu310OyJXPAnRHtOj5PpHoIAkwXTnwuCVN256p8ky754v7Ouvh7e1naLTuCU3nQ33lwiCBfCd3i08hXpY3boEwmQihtjWjVXfiQDQ";
+        String[] jwtParts = bearerToken.split("\\.");
+        System.out.println("JWT Parts:");
+        for (int i = 0; i < jwtParts.length; i++) {
+            System.out.println(jwtParts[i]);
+        }
+        String header = Base64Codec.BASE64.decodeToString(jwtParts[0]);
+        String header2 = new String(Base64.getDecoder().decode(jwtParts[0]), StandardCharsets.UTF_8);
+        System.out.println("Header = " + header);
+        System.out.println("Header2 = " + header2);
+        String payload = Base64Codec.BASE64.decodeToString(jwtParts[1]);
+        String payload2 = new String(Base64.getDecoder().decode(jwtParts[1]), StandardCharsets.UTF_8);
+        System.out.println("Payload = " + payload);
+        System.out.println("Payload2 = " + payload2);
     }
 }
