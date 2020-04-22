@@ -80,11 +80,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
               - Effect: Allow
                 Action:
+                  - logs:CreateLogStream
                   - logs:DescribeLogStreams
                 Resource:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
@@ -152,10 +152,15 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - s3:PutObject
@@ -449,12 +454,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource:
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
               - Effect: Allow
                 Action:
+                  - logs:CreateLogStream
                   - logs:DescribeLogStreams
                 Resource:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
@@ -502,10 +506,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
                 Resource:
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - cognito-idp:ListUserPools
@@ -516,7 +524,7 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-lambda-authorizer-${AWS::Region}
       Role: !GetAtt LambdaCustomAuthorizerRole.Arn
       Runtime: java8
-      Timeout: 5
+      Timeout: 15
       MemorySize: 512
       Handler: com.amazon.aws.partners.saasfactory.Authorizer
       Code:
@@ -556,9 +564,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - dynamodb:GetItem
@@ -2084,9 +2097,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - ec2:CreateNetworkInterface

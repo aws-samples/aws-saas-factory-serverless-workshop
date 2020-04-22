@@ -58,154 +58,25 @@ Parameters:
     MinLength: 8
     AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
     ConstraintDescription: RDS passwords must be at least 8 characters in length
+  VPC:
+    Description: Workshop VPC
+    Type: String
+  SubnetPublicA:
+    Description: Public Subnet
+    Type: String
+  SubnetPublicB:
+    Description: Public Subnet
+    Type: String
+  SubnetPrivateA:
+    Description: Private Subnet
+    Type: String
+  SubnetPrivateB:
+    Description: Private Subnet
+    Type: String
 #Metadata:
 Conditions:
   EventEngine: !Not [!Equals ['', !Ref EventEngineRole]]
 Resources:
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-vpc
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-igw
-  AttachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-  RouteTablePublic:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-route-pub
-  RoutePublic:
-    Type: AWS::EC2::Route
-    DependsOn: AttachGateway
-    Properties:
-      RouteTableId: !Ref RouteTablePublic
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-  SubnetPublicA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs '']
-      CidrBlock: 10.0.32.0/19
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-subA-pub
-  SubnetPublicARouteTable:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SubnetPublicA
-      RouteTableId: !Ref RouteTablePublic
-  SubnetPublicB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs '']
-      CidrBlock: 10.0.96.0/19
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-subB-pub
-  SubnetPublicBRouteTable:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SubnetPublicB
-      RouteTableId: !Ref RouteTablePublic
-  NatGatewayAddrA:
-    Type: AWS::EC2::EIP
-    DependsOn: AttachGateway
-    Properties:
-      Domain: vpc
-  NatGatewayA:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayAddrA.AllocationId
-      SubnetId: !Ref SubnetPublicA
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-nat-subA-pub
-  RouteTableNatA:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-route-natA
-  RouteNatA:
-    Type: AWS::EC2::Route
-    DependsOn: NatGatewayA
-    Properties:
-      RouteTableId: !Ref RouteTableNatA
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGatewayA
-  SubnetPrivateA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs '']
-      CidrBlock: 10.0.0.0/19
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-subA-priv
-  SubnetPrivateARouteTable:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SubnetPrivateA
-      RouteTableId: !Ref RouteTableNatA
-  NatGatewayAddrB:
-    Type: AWS::EC2::EIP
-    DependsOn: AttachGateway
-    Properties:
-      Domain: vpc
-  NatGatewayB:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayAddrB.AllocationId
-      SubnetId: !Ref SubnetPublicB
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-nat-subB-pub
-  RouteTableNatB:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-route-natB
-  RouteNatB:
-    Type: AWS::EC2::Route
-    DependsOn: NatGatewayB
-    Properties:
-      RouteTableId: !Ref RouteTableNatB
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGatewayB
-  SubnetPrivateB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs '']
-      CidrBlock: 10.0.64.0/19
-      Tags:
-        - Key: Name
-          Value: saas-factory-srvls-wrkshp-subB-priv
-  SubnetPrivateBRouteTable:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SubnetPrivateB
-      RouteTableId: !Ref RouteTableNatB
   JumpBoxSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -384,11 +255,15 @@ Resources:
                   - !Sub arn:aws:s3:::aws-codedeploy-${AWS::Region}/*
               - Effect: Allow
                 Action:
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
-                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
                 Resource:
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - ssm:GetParameter
@@ -511,13 +386,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
               - Effect: Allow
                 Action:
+                  - logs:CreateLogStream
                   - logs:DescribeLogStreams
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - s3:ListBucket
@@ -577,7 +453,10 @@ Resources:
         S3Key: ClearS3Bucket.jar
   InvokeLambdaClearS3BucketCodePipelineBucket:
     Type: Custom::CustomResource
-    DependsOn: CodePipelineBucket
+    DependsOn:
+      - LambdaClearS3Bucket
+      - LambdaClearS3BucketLogs
+      - CodePipelineBucket
     Properties:
       ServiceToken: !GetAtt LambdaClearS3Bucket.Arn
       Bucket: !Ref CodePipelineBucket
@@ -600,6 +479,7 @@ Resources:
         S3Key: CreateKeyPair.jar
   InvokeLambdaCreateKeyPair:
     Type: Custom::CustomResource
+    DependsOn: LambdaCreateKeyPair
     Properties:
       ServiceToken: !GetAtt LambdaCreateKeyPair.Arn
       KeyName: !Sub saas-factory-srvls-wrkshop-keypair-${AWS::Region}
@@ -633,9 +513,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
               - Effect: Allow
                 Action:
                   - s3:PutObject
@@ -1183,12 +1068,11 @@ Resources:
       RetentionInDays: 30
   LambdaBootstrapDatabase:
     Type: AWS::Lambda::Function
-    DependsOn: JumpBoxSecurityGroup
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-bootstrap-rds-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 60
+      Timeout: 300
       MemorySize: 256
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
@@ -1226,12 +1110,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource:
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*
               - Effect: Allow
                 Action:
+                  - logs:CreateLogStream
                   - logs:DescribeLogStreams
                 Resource:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
@@ -1242,12 +1125,11 @@ Resources:
                   - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:*
   LambdaAddDatabaseUser:
     Type: AWS::Lambda::Function
-    DependsOn: JumpBoxSecurityGroup
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-rds-add-db-user-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 60
+      Timeout: 300
       MemorySize: 256
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
@@ -1265,8 +1147,9 @@ Resources:
       - RDSCluster
       - RDSInstance1
       - RDSInstance2
-      - JumpBoxSecurityGroup
       - RDSHotPoolTable
+      - LambdaBootstrapDatabaseLogs
+      - LambdaBootstrapDatabase
     Properties:
       ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
       RDSMasterUsername: !Ref DBMasterUsername
@@ -1283,8 +1166,9 @@ Resources:
       - RDSHotCluster1
       - RDSHotCluster1Instance1
       - RDSHotCluster1Instance2
-      - JumpBoxSecurityGroup
       - RDSHotPoolTable
+      - LambdaBootstrapDatabaseLogs
+      - LambdaBootstrapDatabase
     Properties:
       ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
       RDSMasterUsername: !Ref DBMasterUsername
@@ -1301,8 +1185,9 @@ Resources:
       - RDSHotCluster2
       - RDSHotCluster2Instance1
       - RDSHotCluster2Instance2
-      - JumpBoxSecurityGroup
       - RDSHotPoolTable
+      - LambdaBootstrapDatabaseLogs
+      - LambdaBootstrapDatabase
     Properties:
       ServiceToken: !GetAtt LambdaBootstrapDatabase.Arn
       RDSMasterUsername: !Ref DBMasterUsername
@@ -1320,12 +1205,11 @@ Resources:
       RetentionInDays: 30
   LambdaBootstrapDatabasePooled:
     Type: AWS::Lambda::Function
-    DependsOn: JumpBoxSecurityGroup
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-rds-pooled-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 60
+      Timeout: 300
       MemorySize: 256
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
@@ -1343,7 +1227,8 @@ Resources:
       - RDSPooledCluster
       - RDSPooledClusterInstance1
       - RDSPooledClusterInstance2
-      - JumpBoxSecurityGroup
+      - LambdaBootstrapDatabasePooledLogs
+      - LambdaBootstrapDatabasePooled
     Properties:
       ServiceToken: !GetAtt LambdaBootstrapDatabasePooled.Arn
       RDSMasterUsername: !Ref DBMasterUsername
@@ -1374,7 +1259,10 @@ Resources:
           Value: !Sub saas-factory-srvls-wrkshp-website-bucket-${AWS::Region}
   InvokeLambdaClearS3BucketWebsiteBucket:
     Type: Custom::CustomResource
-    DependsOn: WebsiteBucket
+    DependsOn:
+      - LambdaClearS3Bucket
+      - LambdaClearS3BucketLogs
+      - WebsiteBucket
     Properties:
       ServiceToken: !GetAtt LambdaClearS3Bucket.Arn
       Bucket: !Ref WebsiteBucket

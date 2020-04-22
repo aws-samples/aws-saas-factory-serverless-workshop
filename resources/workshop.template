@@ -36,7 +36,7 @@ Parameters:
   ObjectsToCopy:
     Description: List of objects to copy from source bucket to destination bucket
     Type: CommaDelimitedList
-    Default: BootstrapRDS.jar,SSMPutParamSecure.jar,ClearS3Bucket.jar,UpdateDeploymentGroup.jar,CreateKeyPair.jar,lab1.template,lab2.template,lab3.template,lab4.template,onboard-tenant.template
+    Default: BootstrapRDS.jar,SSMPutParamSecure.jar,ClearS3Bucket.jar,UpdateDeploymentGroup.jar,CreateKeyPair.jar,baseline.template,lab1.template,lab2.template,lab3.template,lab4.template,onboard-tenant.template
   EventEngineRoleName:
     Description: IAM role name of the Event Engine player role
     Type: String
@@ -181,11 +181,12 @@ Resources:
     Properties:
       ServiceToken: !GetAtt ClearS3Bucket.Arn
       Bucket: !Ref WorkshopS3Bucket
-  lab1:
+  base:
     Type: AWS::CloudFormation::Stack
     DependsOn: InvokeLambdaCopyS3Objects
     Properties:
-      TemplateURL: !Sub https://s3.amazonaws.com/${WorkshopS3Bucket}/lab1.template
+      TemplateURL: !Sub https://s3.amazonaws.com/${WorkshopS3Bucket}/baseline.template
+      TimeoutInMinutes: 60
       Parameters:
         EventEngineRole: !Ref EETeamRoleArn
         EventEngineRoleName: !Ref EventEngineRoleName

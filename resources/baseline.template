@@ -1,0 +1,247 @@
+---
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS SaaS Factory Serverless SaaS Workshop - Baseline
+Parameters:
+  AMI:
+    Description: EC2 Image ID to run the monolith (don't change)
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  WorkshopS3Bucket:
+    Description: S3 bucket where you uploaded the Lambda code packages for CloudFormation
+    Type: String
+  EventEngineRole:
+    Description: IAM role ARN of the Event Engine player role if it exists
+    Type: String
+    Default: ''
+  EventEngineRoleName:
+    Description: IAM role name of the Event Engine player role
+    Type: String
+    Default: ''
+  DBName:
+    Description: RDS Database Name
+    Type: String
+    MinLength: 3
+    MaxLength: 31
+    AllowedPattern: ^[a-zA-Z]+[a-zA-Z0-9_\$]*$
+    ConstraintDescription: Database name must be between 3 and 31 characters in length
+  DBMasterUsername:
+    Description: RDS Master Username
+    Type: String
+  DBMasterPassword:
+    Description: RDS Master User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+  DBAppUsername:
+    Description: RDS Application Username
+    Type: String
+  DBAppPassword:
+    Description: RDS Application User Password
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    AllowedPattern: ^[a-zA-Z0-9/@"' ]{8,}$
+    ConstraintDescription: RDS passwords must be at least 8 characters in length
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-vpc
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-igw
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-pub
+  RoutePublic:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.32.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subA-pub
+  SubnetPublicARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref RouteTablePublic
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.0.96.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subB-pub
+  SubnetPublicBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref RouteTablePublic
+  NatGatewayAddrA:
+    Type: AWS::EC2::EIP
+    DependsOn: AttachGateway
+    Properties:
+      Domain: vpc
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayAddrA.AllocationId
+      SubnetId: !Ref SubnetPublicA
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-nat-subA-pub
+  RouteTableNatA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-natA
+  RouteNatA:
+    Type: AWS::EC2::Route
+    DependsOn: NatGatewayA
+    Properties:
+      RouteTableId: !Ref RouteTableNatA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayA
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.0.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subA-priv
+  SubnetPrivateARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref RouteTableNatA
+  NatGatewayAddrB:
+    Type: AWS::EC2::EIP
+    DependsOn: AttachGateway
+    Properties:
+      Domain: vpc
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayAddrB.AllocationId
+      SubnetId: !Ref SubnetPublicB
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-nat-subB-pub
+  RouteTableNatB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-route-natB
+  RouteNatB:
+    Type: AWS::EC2::Route
+    DependsOn: NatGatewayB
+    Properties:
+      RouteTableId: !Ref RouteTableNatB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.0.64.0/19
+      Tags:
+        - Key: Name
+          Value: saas-factory-srvls-wrkshp-subB-priv
+  SubnetPrivateBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref RouteTableNatB
+  lab1:
+    Type: AWS::CloudFormation::Stack
+    # Make sure we don't delete any of the network before the VPC Lambda
+    # custom resources have a chance to POST back to the CloudFormation
+    # response URL
+    DependsOn:
+      - VPC
+      - SubnetPublicA
+      - SubnetPublicB
+      - SubnetPrivateA
+      - SubnetPrivateB
+      - SubnetPublicARouteTable
+      - SubnetPublicBRouteTable
+      - RoutePublic
+      - RouteTablePublic
+      - InternetGateway
+      - NatGatewayA
+      - NatGatewayB
+      - RouteNatA
+      - RouteNatB
+      - RouteTableNatA
+      - RouteTableNatB
+      - SubnetPrivateARouteTable
+      - SubnetPrivateBRouteTable
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${WorkshopS3Bucket}/lab1.template
+      TimeoutInMinutes: 60
+      Parameters:
+        EventEngineRole: !Ref EventEngineRole
+        EventEngineRoleName: !Ref EventEngineRoleName
+        WorkshopS3Bucket: !Ref WorkshopS3Bucket
+        DBName: !Ref DBName
+        DBMasterUsername: !Ref DBMasterUsername
+        DBMasterPassword: !Ref DBMasterPassword
+        DBAppUsername: !Ref DBAppUsername
+        DBAppPassword: !Ref DBAppPassword
+        VPC: !Ref VPC
+        SubnetPublicA: !Ref SubnetPublicA
+        SubnetPublicB: !Ref SubnetPublicB
+        SubnetPrivateA: !Ref SubnetPrivateA
+        SubnetPrivateB: !Ref SubnetPrivateB
+...
