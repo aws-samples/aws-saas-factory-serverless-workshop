@@ -56,7 +56,6 @@ public class CreateKeyPair implements RequestHandler<Map<String, Object>, Object
         try {
             ObjectMapper mapper = new ObjectMapper();
             logger.log(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
-            logger.log("\n");
         } catch (JsonProcessingException e) {
             logger.log("Could not log input\n");
         }

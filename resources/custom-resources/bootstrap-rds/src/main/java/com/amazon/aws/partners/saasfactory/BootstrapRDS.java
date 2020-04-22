@@ -272,6 +272,18 @@ public class BootstrapRDS implements RequestHandler<Map<String, Object>, Object>
                         }
                         sendResponse(input, context, "SUCCESS", responseData);
                     }
+                } else if ("Update".equalsIgnoreCase(requestType)) {
+                    logger.log("UDPATE\n");
+                    // TODO: Should we really support updating a login role name or password?
+                    sendResponse(input, context, "SUCCESS", responseData);
+                } else if ("Delete".equalsIgnoreCase(requestType)) {
+                    logger.log("DELETE\n");
+                    // TODO: Do we dare delete the user here?
+                    sendResponse(input, context, "SUCCESS", responseData);
+                } else {
+                    logger.log("FAILED unknown requestType " + requestType + "\n");
+                    responseData.put("Reason", "Unknown RequestType " + requestType);
+                    sendResponse(input, context, "FAILED", responseData);
                 }
             };
             Future<?> f = service.submit(r);

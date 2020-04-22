@@ -107,22 +107,13 @@ public class CopyS3Objects implements RequestHandler<Map<String, Object>, Object
             };
             Future<?> f = service.submit(r);
             f.get(context.getRemainingTimeInMillis() - 1000, TimeUnit.MILLISECONDS);
-        } catch (final TimeoutException | InterruptedException |
-                ExecutionException e) {
-            if ("Delete".equalsIgnoreCase(requestType)) {
-                sendResponse(input, context, "SUCCESS", responseData);
-            } else {
-                // Timed out
-                logger.log("FAILED unexpected error or request timed out " + e.getMessage() + "\n");
-                // Print entire stack trace
-                final StringWriter sw = new StringWriter();
-                final PrintWriter pw = new PrintWriter(sw, true);
-                e.printStackTrace(pw);
-                String stackTrace = sw.getBuffer().toString();
-                logger.log(stackTrace + "\n");
-                responseData.put("Reason", e.getMessage());
-                sendResponse(input, context, "FAILED", responseData);
-            }
+        } catch (final TimeoutException | InterruptedException | ExecutionException e) {
+            // Timed out
+            logger.log("FAILED unexpected error or request timed out " + e.getMessage() + "\n");
+            String stackTrace = getFullStackTrace(e);
+            logger.log(stackTrace + "\n");
+            responseData.put("Reason", stackTrace);
+            sendResponse(input, context, "FAILED", responseData);
         } finally {
             service.shutdown();
         }
@@ -132,48 +123,60 @@ public class CopyS3Objects implements RequestHandler<Map<String, Object>, Object
     /**
      * Send a response to CloudFormation regarding progress in creating resource.
      *
-     * @param input
+     * @param event
      * @param context
      * @param responseStatus
      * @param responseData
      * @return
      */
-    public final Object sendResponse(final Map<String, Object> input, final Context context, final String responseStatus, ObjectNode responseData) {
-        String responseUrl = (String) input.get("ResponseURL");
+    public final Object sendResponse(final Map<String, Object> event, final Context context, final String responseStatus, ObjectNode responseData) {
+        LambdaLogger logger = context.getLogger();
+        String responseUrl = (String) event.get("ResponseURL");
+        logger.log("ResponseURL: " + responseUrl + "\n");
+
         URL url;
         try {
             url = new URL(responseUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "");
             connection.setRequestMethod("PUT");
 
             ObjectNode responseBody = JsonNodeFactory.instance.objectNode();
             responseBody.put("Status", responseStatus);
-            responseBody.put("RequestId", (String) input.get("RequestId"));
-            responseBody.put("LogicalResourceId", (String) input.get("LogicalResourceId"));
-            responseBody.put("StackId", (String) input.get("StackId"));
-            responseBody.put("PhysicalResourceId", context.getLogStreamName());
+            responseBody.put("RequestId", (String) event.get("RequestId"));
+            responseBody.put("LogicalResourceId", (String) event.get("LogicalResourceId"));
+            responseBody.put("StackId", (String) event.get("StackId"));
+            responseBody.put("PhysicalResourceId", (String) event.get("LogicalResourceId"));
             if (!"FAILED".equals(responseStatus)) {
                 responseBody.set("Data", responseData);
             } else {
                 responseBody.put("Reason", responseData.get("Reason").asText());
             }
-            context.getLogger().log("Sending CloudFormation response:\n" + responseUrl + "\n" + responseBody.toString());
+            logger.log("Response Body: " + responseBody.toString() + "\n");
+
             try (OutputStreamWriter response = new OutputStreamWriter(connection.getOutputStream())) {
                 response.write(responseBody.toString());
+            } catch (IOException ioe) {
+                logger.log("Failed to call back to CFN response URL\n");
+                logger.log(getFullStackTrace(ioe) + "\n");
             }
-            // Must call getInputStream or getResponseCode to actually send the HTTP request
-            context.getLogger().log("Response Code: " + connection.getResponseCode() + "\n");
+
+            logger.log("Response Code: " + connection.getResponseCode() + "\n");
             connection.disconnect();
         } catch (IOException e) {
-            // Print whole stack trace
-            final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw, true);
-            e.printStackTrace(pw);
-            context.getLogger().log(sw.getBuffer().toString() + "\n");
+            logger.log("Failed to open connection to CFN response URL\n");
+            logger.log(getFullStackTrace(e) + "\n");
         }
 
         return null;
+    }
+
+    private static String getFullStackTrace(Exception e) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        e.printStackTrace(pw);
+        return sw.getBuffer().toString();
     }
 
 }
