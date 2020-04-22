@@ -126,10 +126,11 @@ public class ProductService implements RequestHandler<Map<String, Object>, APIGa
                     .withStatusCode(400)
                     .withBody("product.id does not match resource path id");
         } else {
-            DAL.deleteProduct(event, product);
+            product = DAL.deleteProduct(event, product);
             response = new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withHeaders(CORS);
+                    .withHeaders(CORS)
+            .withBody(toJson(product));
         }
         return response;
     }
@@ -214,10 +215,11 @@ public class ProductService implements RequestHandler<Map<String, Object>, APIGa
                     .withStatusCode(400)
                     .withBody("category.id does not match resource path id");
         } else {
-            DAL.deleteCategory(event, category);
+            category = DAL.deleteCategory(event, category);
             response = new APIGatewayProxyResponseEvent()
                     .withStatusCode(200)
-                    .withHeaders(CORS);
+                    .withHeaders(CORS)
+            .withBody(toJson(category));
         }
         return response;
     }

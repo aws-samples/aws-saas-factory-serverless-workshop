@@ -238,17 +238,20 @@ public class ProductServiceDAL {
         return product;
     }
 
-    public void deleteProduct(Map<String, Object> event, Product product) {
+    public Product deleteProduct(Map<String, Object> event, Product product) {
         LoggingManager.log(event, "ProductServiceDAL::deleteProduct " + product);
         UUID tenantId = UUID.fromString(new TokenManager().getTenantId(event));
         try (PreparedStatement stmt = connection.prepareStatement(DELETE_PRODUCT_SQL)) {
             stmt.setObject(1, tenantId);
             stmt.setInt(2, product.getId());
-            int affected = stmt.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows != 1) {
+                throw new RuntimeException("Delete failed for product " + product.getId());
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return;
+        return product;
     }
 
     public List<Category> getCategories(Map<String, Object> event) {
@@ -330,17 +333,20 @@ public class ProductServiceDAL {
         return category;
     }
 
-    public void deleteCategory(Map<String, Object> event, Category category) {
+    public Category deleteCategory(Map<String, Object> event, Category category) {
         LoggingManager.log(event, "ProductServiceDAL::deleteCategory " + category);
         UUID tenantId = UUID.fromString(new TokenManager().getTenantId(event));
         try (PreparedStatement stmt = connection.prepareStatement(DELETE_CATEGORY_SQL)) {
             stmt.setObject(1, tenantId);
             stmt.setInt(2, category.getId());
-            int affected = stmt.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows != 1) {
+                throw new RuntimeException("Delete failed for category " + category.getId());
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return;
+        return category;
     }
 
     public void categoriesWorkaroundHack(Map<String, Object> event) {

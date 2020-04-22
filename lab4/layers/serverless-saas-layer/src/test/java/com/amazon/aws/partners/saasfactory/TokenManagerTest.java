@@ -19,6 +19,7 @@ package com.amazon.aws.partners.saasfactory;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.Base64Codec;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.junit.Test;
 
@@ -55,12 +56,22 @@ public class TokenManagerTest {
     @Test
     public void testJwt() {
         System.out.println("testJwt");
+        String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTYWFTIEZhY3RvcnkiLCJUZW5hbnRJZCI6ImZlNTNlZDQ2LTg4ODgtNGYxMi1iZThmLTRkNWViYjM4NTUzYiJ9.Oac177ZGLkf6oaTCfKaip0PFY6oOhAnylkPSAezA27g";
         System.out.println(token);
-        Claims claims = Jwts.parser()
-                .setSigningKey(encodedSecret)
-                .parseClaimsJws(token)
-                .getBody();
-        claims.forEach((key, value) -> System.out.println(key + " => " + value));
+        String[] parts = token.split("\\.");
+        String header = Base64Codec.BASE64.decodeToString(parts[0]);
+        String body = Base64Codec.BASE64.decodeToString(parts[1]);
+//        Object claims = Jwts.parser()
+//                .setSigningKey(encodedSecret)
+//                .parseClaimsJws(token)
+//                .parse(token).getBody();
+//                .getBody();
+        System.out.println("Header = " + header);
+        System.out.println("Body = " + body);
+//        claims.forEach((key, value) -> System.out.println(key + " => " + value));
+        String issuer = "https://cognito-idp.us-east-1.amazonaws.com/<userpoolID>";
+        String userPoolId = issuer.substring(issuer.lastIndexOf("/") + 1);
+        System.out.println("UserPoolId = " + userPoolId);
     }
 
     @Test

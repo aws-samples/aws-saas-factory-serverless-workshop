@@ -42,6 +42,7 @@ public class OrderServiceDAL {
 
     public List<Order> getOrders(Map<String, Object> event) {
         LOGGER.info("OrderServiceDAL::getOrders");
+
         List<Order> orders = new ArrayList<>();
         try {
             ScanResponse response = ddb.scan(request -> request.tableName(tableName(event)));
