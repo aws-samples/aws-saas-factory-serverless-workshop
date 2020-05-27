@@ -39,7 +39,7 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
   echo "Delete Lab 4 is running."
-  STATUS=$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" --query Stacks[0].StackStatus --output text 2>/dev/null )
+  STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" --query Stacks[0].StackStatus --output text 2>/dev/null )"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
@@ -61,7 +61,7 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
   echo "Delete Lab 3 is running."
-  STATUS=$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" --query Stacks[0].StackStatus --output text 2>/dev/null )
+  STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" --query Stacks[0].StackStatus --output text 2>/dev/null )"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
@@ -83,7 +83,7 @@ aws cloudformation delete-stack --region $MY_AWS_REGION  --stack-name "${TENANT_
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
   echo "Delete Tenant is running."
-  STATUS=$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)
+  STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
@@ -105,7 +105,7 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" --query Stacks[0].StackStatus --output text 2>/dev/null)" = "*"DELETE_IN_PROGRESS"*" ];
 do
   echo "Delete Lab 2 is running."
-  STATUS=$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" --query Stacks[0].StackStatus --output text 2>/dev/null)
+  STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
@@ -127,7 +127,7 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)" = "*"DELETE_IN_PROGRESS"*" ];
 do
   echo "Delete Lab 0 & 1 is running."
-  STATUS=$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)
+  STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
