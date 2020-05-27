@@ -1,12 +1,12 @@
 ---
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
 # software and associated documentation files (the "Software"), to deal in the Software
 # without restriction, including without limitation the rights to use, copy, modify,
 # merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -43,7 +43,7 @@ Resources:
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: 30
-      Subnets: !Ref LoadBalancerSubnets    
+      Subnets: !Ref LoadBalancerSubnets
       SecurityGroups: [!Ref LoadBalancerSecurityGroup]
   LoadBalancerDefaultListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -384,7 +384,7 @@ Resources:
   CloudWatchEventRoleForCloudTrailLab2:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub saas-factory-srvls-wrkshp-cw-event-role-lab2-${AWS::Region}
+      RoleName: !Sub saas-factory-srvls-wrkshp-cw-evt-role-lab2-${AWS::Region}
       Path: '/'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -396,7 +396,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: !Sub saas-factory-srvls-wrkshp-cw-event-policy-lab2-${AWS::Region}
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-cw-evt-policy-lab2-${AWS::Region}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -2136,7 +2136,7 @@ Resources:
   CloudWatchEventRoleForLambdaWarmer:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub saas-factory-srvls-wrkshp-event-role-lambda-warmer-${AWS::Region}
+      RoleName: !Sub saas-factory-srvls-wrkshp-evt-role-lambda-warmer-${AWS::Region}
       Path: '/'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -2148,7 +2148,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: !Sub saas-factory-srvls-wrkshp-event-policy-lambda-warmer-${AWS::Region}
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-evt-policy-lambda-warmer-${AWS::Region}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -2172,7 +2172,7 @@ Resources:
       - ApiGatewayLab2ApiStage
     Properties:
       Description: Scheduled event to keep Lambda functions warm
-      Name: !Sub saas-factory-srvls-wrkshp-event-rule-lab2-${AWS::Region}
+      Name: !Sub saas-factory-srvls-wrkshp-evt-rule-lab2-${AWS::Region}
       ScheduleExpression: 'rate(1 minute)'
       State: ENABLED
       Targets:

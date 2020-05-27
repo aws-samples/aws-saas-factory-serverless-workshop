@@ -1,12 +1,12 @@
 ---
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
 # software and associated documentation files (the "Software"), to deal in the Software
 # without restriction, including without limitation the rights to use, copy, modify,
 # merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -76,6 +76,7 @@ Parameters:
 #Metadata:
 Conditions:
   EventEngine: !Not [!Equals ['', !Ref EventEngineRole]]
+  Nont2region: !Equals [ 'eu-north-1' , !Ref 'AWS::Region' ]
 Resources:
   JumpBoxSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -104,7 +105,7 @@ Resources:
               command: yum install -y postgresql
     Properties:
       ImageId: !Ref AMI
-      InstanceType: t2.micro
+      InstanceType: !If [ Nont2region, 't3.micro', 't2.micro' ]
       KeyName: !GetAtt InvokeLambdaCreateKeyPair.KeyName
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
@@ -162,7 +163,7 @@ Resources:
           Value: 30
       Subnets:
         - !Ref SubnetPublicA
-        - !Ref SubnetPublicB    
+        - !Ref SubnetPublicB
       SecurityGroups: [!Ref ALBSecurityGroup]
   ALBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -290,7 +291,7 @@ Resources:
     Properties:
       LaunchConfigurationName: saas-factory-srvls-wrkshp-launch-config
       ImageId: !Ref AMI
-      InstanceType: t2.micro
+      InstanceType: !If [Nont2region, 't3.micro', 't2.micro']
       KeyName: !GetAtt InvokeLambdaCreateKeyPair.KeyName
       SecurityGroups: [!Ref AppServerSecurityGroup]
       IamInstanceProfile: !Ref AppServerInstanceProfile
@@ -821,10 +822,10 @@ Resources:
       SubnetIds:
         - !Ref SubnetPrivateA
         - !Ref SubnetPrivateB
-  RDSClusterParameterGroup: 
+  RDSClusterParameterGroup:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties:
-      Family: aurora-postgresql10
+      Family: aurora-postgresql11
       Description: saas-factory-srvls-wrkshp-rds-cluster-parameters
       Parameters:
         ssl: true
