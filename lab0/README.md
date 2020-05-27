@@ -33,10 +33,16 @@ This saves you from building these resources manually, so you can focus on migra
     `aws mb s3://aws-serverless-workshop-bucket --region ap-southeast-2`
 
 5.	Download CopyS3Objects.jar & ClearS3Bucket.jar from bucket to your local machine
-6.
-    `aws s3api get-object --bucket aws-saas-factory-serverless-saas-workshop-us-west-2 --key CopyS3Objects.jar CopyS3Objects.jar`
 
-    `aws s3api get-object --bucket aws-saas-factory-serverless-saas-workshop-us-west-2 --key ClearS3Bucket.jar ClearS3Bucket.jar`
+    ```
+    aws s3api get-object \
+        --bucket aws-saas-factory-serverless-saas-workshop-us-west-2 \
+        --key CopyS3Objects.jar CopyS3Objects.jar
+
+    aws s3api get-object \
+        --bucket aws-saas-factory-serverless-saas-workshop-us-west-2 \
+        --key ClearS3Bucket.jar ClearS3Bucket.jar
+    ```
 
 6.	Upload those 2 JAR files to the S3 bucket you made in step #1
 

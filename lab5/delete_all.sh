@@ -134,7 +134,6 @@ do
     if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
       echo "Delete Lab 0 & 1 status $STATUS"
       if [$STATUS != "DELETE_COMPLETE"]; then
-          echo "Delete Lab 0 & 1 Status $STATUS"
           echo "Retrying Delete ${WORKSHOP_STACK}"
           aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" 2>/dev/null
       fi
