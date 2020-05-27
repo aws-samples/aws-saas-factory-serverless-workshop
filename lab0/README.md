@@ -8,19 +8,19 @@ This saves you from building these resources manually, so you can focus on migra
 
 1.	To deploy the resources in this lab you first need to have the following tool installed in your local machine.
 
-    [Git](https://git-scm.com/)
-
-    [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+    * [Git](https://git-scm.com/)
+    * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
 2.  Once you have them installed, we will clone the repository to our local machine. ( Run below command in your local machine command prompt ).
 
     `git clone https://github.com/aws-samples/aws-saas-factory-serverless-workshop.git`
 
-3.  Then locate the `workshop.template` file under `aws-saas-factory-serverless-workshop/resources` folder.
+3.  Then locate the **workshop.template** file under **aws-saas-factory-serverless-workshop/resources** folder.
 
-    `cd aws-saas-factory-serverless-workshop/resources`
-
-    `ls workshop.template`
+    ```
+    cd aws-saas-factory-serverless-workshop/resources
+    ls workshop.template
+    ```
 
     This will be the master cloudformation template that we will deploy in this lab.
 
@@ -40,15 +40,17 @@ This saves you from building these resources manually, so you can focus on migra
 
 6.	Upload those 2 JAR files to the S3 bucket you made in step #1
 
-    `aws s3 cp CopyS3Objects.jar s3://<bucket created in step 4>`
-
-    `aws s3 cp ClearS3Bucket.jar s3://<bucket created in step 4>`
+    ```
+    aws s3 cp CopyS3Objects.jar s3://<bucket created in step 4>
+    aws s3 cp ClearS3Bucket.jar s3://<bucket created in step 4>
+    ```
 
     e.g:
 
-    `aws s3 cp CopyS3Objects.jar s3://aws-serverless-workshop-bucket`
-
-    `aws s3 cp ClearS3Bucket.jar s3://aws-serverless-workshop-bucket`
+    ```
+    aws s3 cp CopyS3Objects.jar s3://aws-serverless-workshop-bucket
+    aws s3 cp ClearS3Bucket.jar s3://aws-serverless-workshop-bucket
+    ```
 
 7.	Deploy the cloudformation stack using the `workshop.template`
 8.
