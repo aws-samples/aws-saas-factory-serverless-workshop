@@ -38,17 +38,18 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
-  echo "Delete Lab 4 is running. ";echo -en "\e[1A";
+  echo "Delete Lab 4 is running. "
   STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" --query Stacks[0].StackStatus --output text 2>/dev/null )"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
-    if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
-       echo "Delete Lab 4 status $STATUS"
-       if [$STATUS != "DELETE_COMPLETE"]; then
-          echo "Delete Lab 4 Status $STATUS"
-       fi
-    fi
+    # if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
+        echo "Delete Lab 4 status $STATUS"
+        if [ $STATUS = "DELETE_FAILED" ]; then
+            echo "Retrying Delete ${WORKSHOP_STACK}-lab4"
+            aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab4" 2>/dev/null
+        fi
+    # fi
   else
     echo "Delete Lab 4 complete."
     break
@@ -60,39 +61,43 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
-  echo "Delete Lab 3 is running.";echo -en "\e[1A";
+  echo "Delete Lab 3 is running."
   STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" --query Stacks[0].StackStatus --output text 2>/dev/null )"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
-    if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
-       echo "Delete Lab 3 status $STATUS"
-       if [$STATUS != "DELETE_COMPLETE"]; then
-          echo "Delete Lab 3 Status $STATUS"
-       fi
-    fi
+    # if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
+        echo "Delete Lab 3 status $STATUS"
+        if [ $STATUS = "DELETE_FAILED" ]; then
+            echo "Retrying Delete ${WORKSHOP_STACK}-lab3"
+            aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab3" 2>/dev/null
+        fi
+    # fi
   else
     echo "Delete Lab 3 complete."
     break
   fi
 done
 
+
 TENANT_STACK=$(aws cloudformation describe-stacks --region $MY_AWS_REGION | jq -r '.Stacks[] | select(.StackName | contains("Tenant")) | .StackName') 2>/dev/null;
+echo "Deleting ${TENANT_STACK}"
 aws cloudformation delete-stack --region $MY_AWS_REGION  --stack-name "${TENANT_STACK}" 2>/dev/null
 
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null )" = "*"DELETE_IN_PROGRESS"*" ];
 do
-  echo "Delete Tenant is running.";echo -en "\e[1A";
+  echo "Delete Tenant is running."
   STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
-    if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
-       echo "Delete Tenant status $STATUS"
-       if [$STATUS != "DELETE_COMPLETE"]; then
-          echo "Delete Tenant Status $STATUS"
-       fi
-    fi
+    # if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
+      echo "Delete Tenant status $STATUS"
+      if [ $STATUS = "DELETE_FAILED" ]; then
+          echo "Retrying Delete ${TENANT_STACK}"
+          aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${TENANT_STACK}" 2>/dev/null
+      fi
+    # fi
   else
     echo "Delete Tenant complete."
     break
@@ -104,17 +109,18 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" --query Stacks[0].StackStatus --output text 2>/dev/null)" = "*"DELETE_IN_PROGRESS"*" ];
 do
-  echo "Delete Lab 2 is running.";echo -en "\e[1A";
+  echo "Delete Lab 2 is running."
   STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
-    if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
-       echo "Delete Lab 2 status $STATUS"
-       if [$STATUS != "DELETE_COMPLETE"]; then
-          echo "Delete Lab 2 Status $STATUS"
-       fi
-    fi
+    # if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
+      echo "Delete Lab 2 status $STATUS"
+      if [ $STATUS = "DELETE_FAILED" ]; then
+          echo "Retrying Delete ${WORKSHOP_STACK}-lab2"
+          aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}-lab2" 2>/dev/null
+      fi
+    # fi
   else
     echo "Delete Lab 2 complete."
     break
@@ -126,18 +132,18 @@ aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP
 
 until [ "$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)" = "*"DELETE_IN_PROGRESS"*" ];
 do
-  echo "Delete Lab 0 & 1 is running.";echo -en "\e[1A";
+  echo "Delete Lab 0 & 1 is running."
   STATUS="$(aws cloudformation describe-stacks --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" --query Stacks[0].StackStatus --output text 2>/dev/null)"
   RESULT=$?
   if [ $RESULT -eq 0 ]; then
     sleep 10s
-    if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
+    # if [ $STATUS != "DELETE_IN_PROGRESS" ]; then
       echo "Delete Lab 0 & 1 status $STATUS"
-      if [$STATUS != "DELETE_COMPLETE"]; then
+      if [ $STATUS = "DELETE_FAILED" ]; then
           echo "Retrying Delete ${WORKSHOP_STACK}"
           aws cloudformation delete-stack --region $MY_AWS_REGION --stack-name "${WORKSHOP_STACK}" 2>/dev/null
       fi
-    fi
+    # fi
   else
     echo "Delete Lab 0 & 1 complete."
     break
