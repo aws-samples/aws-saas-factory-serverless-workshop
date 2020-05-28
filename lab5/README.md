@@ -13,13 +13,13 @@ Please follow below steps to execute the cleanup scripts
 
     ```
     cd aws-saas-factory-serverless-workshop/lab5
-    bash delete_all.sh <region id>
+    bash cleanup_all_labs.sh <region id>
     ```
     e.g:
 
     ```
     cd aws-saas-factory-serverless-workshop/lab5
-    bash delete_all.sh ap-southeast-2
+    bash cleanup_all_labs.sh ap-southeast-2
     ```
 
 
