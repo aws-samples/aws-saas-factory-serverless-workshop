@@ -7,17 +7,20 @@ Please follow below steps to execute the cleanup scripts
 
 ## Step-By-Step Guide
 
-1.	To execute the cleanup please execute below command.
+1.	To simplify the cleanup process you can execute the **delete_all.sh** bash script below.
+    This script will delete the cloudformation stacks related to the Lab in the following order; lab4,lab3,Tenant stack, lab2,lab0 & 1
+    The process will take approx 30 mins to complete
 
-    `cd aws-saas-factory-serverless-workshop/lab5`
-
-    ./delete_all.sh <region id>`
-
+    ```
+    cd aws-saas-factory-serverless-workshop/lab5
+    bash delete_all.sh <region id>
+    ```
     e.g:
 
-    `./delete_all.sh ap-southeast-2`
-
-
+    ```
+    cd aws-saas-factory-serverless-workshop/lab5
+    bash delete_all.sh ap-southeast-2
+    ```
 
 
 
