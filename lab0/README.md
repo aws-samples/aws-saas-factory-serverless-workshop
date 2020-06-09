@@ -1,7 +1,7 @@
 # Lab 0 – Deploying, baseline resources
 
 Before we begin with our Lab, we will deploy our baseline resources where our monolith application reside.
-The following step in will deploy all pre-requisite resources for Lab 1 - 4.
+The following steps will deploy all pre-requisite resources for Lab 1 - 4.
 This saves you from building these resources manually, so you can focus on migrating the monolith application to microservices.
 
 ## Step-By-Step Guide
@@ -26,11 +26,11 @@ This saves you from building these resources manually, so you can focus on migra
 
 4.  Create an S3 bucket in the same region where you will be launching the master cloudformation template.
 
-    `aws mb s3://<unique bucket name> --region <regionid>`
+    `aws s3 mb s3://<unique bucket name> --region <regionid>`
 
     e.g:
 
-    `aws mb s3://aws-serverless-workshop-bucket --region ap-southeast-2`
+    `aws s3 mb s3://aws-serverless-workshop-bucket --region ap-southeast-2`
 
 5.	Download CopyS3Objects.jar & ClearS3Bucket.jar from bucket to your local machine
 
