@@ -140,7 +140,7 @@ public class TenantService implements RequestHandler<Map<String, Object>, APIGat
         long startTimeMillis = System.currentTimeMillis();
         //logRequestEvent(event);
         APIGatewayProxyResponseEvent response = null;
-        LOGGER.info("TenantService::insertTenant");
+        LOGGER.info("TenantService::updateTenant");
         Map<String, String> params = (Map) event.get("pathParameters");
         String tenantId = params.get("id");
         LOGGER.info("TenantService::updateTenant " + tenantId);

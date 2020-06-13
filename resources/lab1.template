@@ -836,6 +836,7 @@ Resources:
       AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
       DBSubnetGroupName: !Ref RDSSubnetGroup
       Engine: aurora-postgresql
+      EngineVersion: 10.6
       Port: 5432
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       VpcSecurityGroupIds:
@@ -875,6 +876,7 @@ Resources:
       AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
       DBSubnetGroupName: !Ref RDSSubnetGroup
       Engine: aurora-postgresql
+      EngineVersion: 10.6
       Port: 5432
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       VpcSecurityGroupIds:
@@ -914,6 +916,7 @@ Resources:
       AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
       DBSubnetGroupName: !Ref RDSSubnetGroup
       Engine: aurora-postgresql
+      EngineVersion: 10.6
       Port: 5432
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       VpcSecurityGroupIds:
@@ -953,6 +956,7 @@ Resources:
       AvailabilityZones: [ !Select [0, !GetAZs ''], !Select [1, !GetAZs ''] ]
       DBSubnetGroupName: !Ref RDSSubnetGroup
       Engine: aurora-postgresql
+      EngineVersion: 10.6
       Port: 5432
       DBClusterParameterGroupName: !Ref RDSClusterParameterGroup
       VpcSecurityGroupIds:
