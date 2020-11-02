@@ -21,6 +21,36 @@ At the end of this lab, you'll still have a single-tenant, monolith experience. 
 ## Step-By-Step Guide
 The setup of this workshop provisioned all the supporting infrastructure for your Java-based, single-tenant monolith application. This includes the VPC and other networking and security components as well as the EC2 instances and the RDS database instances. To get started we need to get our Java application deployed to this infrastructure so we can begin to exercise its features. The following steps will guide your through this process.
 
+<b>Prerequisite</b> 
+1. To deploy the resources in this lab you first need to have the following tool installed in your local machine.
+
+	* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+
+2. Create a new S3 bucket(or use an existing bucket) in the same AWS Region where you’re going to run the workshop
+	```
+	
+	 aws s3 mb s3://<unique bucket name> --region <regionid>
+	 e.g:
+	 aws s3 mb s3://my-saas-workshop-bucket --region us-east-1
+	```
+
+3. Copy the below resources to your S3 bucket
+	```
+	aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/CopyS3Objects.jar s3://my-saas-workshop-bucket/ 
+	aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/ClearS3Bucket.jar s3://my-saas-workshop-bucket/ 
+	aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/workshop.template s3://my-saas-workshop-bucket/
+	
+	```
+	
+4. Launch the workshop’s CloudFormation stack using `workshop.template`
+	```
+	 aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM \
+                                --stack-name <stack name> \
+                                --template-url https://my-saas-workshop-bucket.s3.amazonaws.com/workshop.template \
+                                --parameters ParameterKey=EEAssetsBucket,ParameterValue=my-saas-workshop-bucket 
+	```
+
+
 <b>Step 1</b> – We want to simulate the developer experience as best we can, so we've started this lab with a baseline of infrastructure that has no application deployed. To get things moving, open the IDE that will be used throughout this workshop. We will use Amazon Cloud9 as our IDE for this workshop. To open Cloud9 search for the service in the AWS console, or find it listed under the Developer Tools category. 
 
 Once you've opened the Cloud9 service, you'll see all the environments available to this account. An environment has been pre-provisioned for use throughout this workshop. On the AWS Cloud9 page you'll see <b>"Serverless SaaS Workshop IDE"</b> listed as one of the environments. Open this environment by selecting the <b>"Open IDE"</b> button.
