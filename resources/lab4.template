@@ -133,7 +133,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -156,7 +156,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -179,7 +179,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -202,7 +202,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -225,7 +225,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -248,7 +248,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -271,7 +271,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -294,7 +294,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -317,7 +317,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup
@@ -340,7 +340,7 @@ Resources:
       Role: !GetAtt ProductServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref RDSSecurityGroup

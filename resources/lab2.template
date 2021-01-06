@@ -109,8 +109,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-clear-bucket-lab2-${AWS::Region}
       Role: !GetAtt LambdaExecutionRoleLab2.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -474,8 +474,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-update-deploygrp-${AWS::Region}
       Role: !GetAtt LambdaUpdateDeploymentGroupRole.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 300
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.UpdateDeploymentGroup
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -525,7 +525,7 @@ Resources:
       Role: !GetAtt LambdaCustomAuthorizerRole.Arn
       Runtime: java8
       Timeout: 15
-      MemorySize: 512
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.Authorizer
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -717,7 +717,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::getTenant
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -734,7 +734,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::getTenants
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -751,7 +751,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::updateTenant
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -768,7 +768,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::insertTenant
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -785,7 +785,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::deleteTenant
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -802,7 +802,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::nextAvailableDatabase
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -819,7 +819,7 @@ Resources:
       Role: !GetAtt TenantServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::updateUserPool
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -836,7 +836,7 @@ Resources:
       Role: !GetAtt RegistrationServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 600
-      MemorySize: 960
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.RegistrationService::register
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -887,7 +887,7 @@ Resources:
       Role: !GetAtt AuthServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.AuthService
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -2128,7 +2128,7 @@ Resources:
       Role: !GetAtt LambdaWarmerExecutionRole.Arn
       Runtime: java8
       Timeout: 300
-      MemorySize: 384
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.LambdaWarmer
       Code:
         S3Bucket: !Ref WorkshopS3Bucket

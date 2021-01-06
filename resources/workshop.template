@@ -141,8 +141,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-s3-copy-${AWS::Region}
       Role: !GetAtt S3ObjectsExecutionRole.Arn
       Runtime: java8
-      Timeout: 300
-      MemorySize: 384
+      Timeout: 900
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.CopyS3Objects
       Code:
         S3Bucket: !Ref EEAssetsBucket
@@ -169,8 +169,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-s3-clear-${AWS::Region}
       Role: !GetAtt S3ObjectsExecutionRole.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
       Code:
         S3Bucket: !Ref EEAssetsBucket

@@ -120,7 +120,7 @@ Resources:
       Role: !GetAtt OrderServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::getOrder
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -137,7 +137,7 @@ Resources:
       Role: !GetAtt OrderServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::getOrders
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -154,7 +154,7 @@ Resources:
       Role: !GetAtt OrderServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::updateOrder
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -171,7 +171,7 @@ Resources:
       Role: !GetAtt OrderServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::insertOrder
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -188,7 +188,7 @@ Resources:
       Role: !GetAtt OrderServiceExecutionRole.Arn
       Runtime: java8
       Timeout: 30
-      MemorySize: 256
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::deleteOrder
       Code:
         S3Bucket: !Ref WorkshopS3Bucket

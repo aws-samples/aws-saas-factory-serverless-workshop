@@ -447,8 +447,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-clear-bucket-lab1-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -473,8 +473,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-create-keypair-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 300
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.CreateKeyPair
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -1001,8 +1001,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-ssm-secure-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 30
-      MemorySize: 256
+      Timeout: 300
+      MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.SSMPutParamSecure
       Code:
         S3Bucket: !Ref WorkshopS3Bucket
@@ -1078,8 +1078,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-bootstrap-rds-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 300
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref JumpBoxSecurityGroup
@@ -1135,8 +1135,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-rds-add-db-user-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 300
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref JumpBoxSecurityGroup
@@ -1215,8 +1215,8 @@ Resources:
       FunctionName: !Sub saas-factory-srvls-wrkshp-rds-pooled-${AWS::Region}
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: java8
-      Timeout: 300
-      MemorySize: 256
+      Timeout: 900
+      MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
         SecurityGroupIds:
           - !Ref JumpBoxSecurityGroup
