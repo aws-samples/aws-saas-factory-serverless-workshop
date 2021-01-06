@@ -92,7 +92,7 @@ public class CognitoAuthResult {
         private Builder() {
         }
 
-        public Builder accessToken(String username) {
+        public Builder accessToken(String accessToken) {
             this.accessToken = accessToken;
             return this;
         }

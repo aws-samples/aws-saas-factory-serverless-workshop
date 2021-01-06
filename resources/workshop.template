@@ -22,9 +22,11 @@ Parameters:
   EEAssetsKeyPrefix:
     Description: Event Engine asset bucket key prefix
     Type: String
+    Default: ''
   EETeamRoleArn:
     Description: Event Engine TeamRole ARN
     Type: String
+    Default: ''
   SourceBucket:
     Description: S3 bucket URL to copy objects from
     Type: String
