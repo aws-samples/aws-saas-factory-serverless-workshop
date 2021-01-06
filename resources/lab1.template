@@ -177,6 +177,8 @@ Resources:
       Port: 8080
       Protocol: HTTP
       TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 10
         - Key: stickiness.enabled
           Value: true
         - Key: stickiness.type
