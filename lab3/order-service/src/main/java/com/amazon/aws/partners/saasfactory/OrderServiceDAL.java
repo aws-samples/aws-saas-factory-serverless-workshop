@@ -50,7 +50,7 @@ public class OrderServiceDAL {
                     orders.add(DynamoDbHelper.orderFromAttributeValueMap(item))
             );
         } catch (DynamoDbException e) {
-            LOGGER.error("TenantServiceDAL::getTenants " + getFullStackTrace(e));
+            LOGGER.error("OrderServiceDAL::getOrders " + getFullStackTrace(e));
             throw new RuntimeException(e);
         }
         return orders;
@@ -120,7 +120,7 @@ public class OrderServiceDAL {
             key.put("id", AttributeValue.builder().s(orderId).build());
             DeleteItemResponse response = ddb.deleteItem(request -> request.tableName(tableName(event)).key(key));
         } catch (DynamoDbException e) {
-            LOGGER.error("deleteOrder::deleteOrder " + getFullStackTrace(e));
+            LOGGER.error("OrderServiceDAL::deleteOrder " + getFullStackTrace(e));
             throw new RuntimeException(e);
         }
         return;
