@@ -62,7 +62,7 @@ Resources:
     DependsOn:
       - CodePipelineBucketLab2
     Properties:
-      RoleName: !Sub saas-factory-srvls-wrkshp-cfn-lambda-role-lab2-${AWS::Region}
+      RoleName: !Sub saas-factory-srvls-wrkshp-lambda-role-lab2-${AWS::Region}
       Path: '/'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -74,7 +74,7 @@ Resources:
             Action:
               - sts:AssumeRole
       Policies:
-        - PolicyName: !Sub saas-factory-srvls-wrkshp-cfn-lambda-policy-lab2-${AWS::Region}
+        - PolicyName: !Sub saas-factory-srvls-wrkshp-lambda-policy-lab2-${AWS::Region}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -2136,7 +2136,7 @@ Resources:
   CloudWatchEventRoleForLambdaWarmer:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub saas-factory-srvls-wrkshp-event-role-lambda-warmer-${AWS::Region}
+      RoleName: !Sub saas-factory-srvls-wrkshp-evt-role-lambda-warmer-${AWS::Region}
       Path: '/'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
