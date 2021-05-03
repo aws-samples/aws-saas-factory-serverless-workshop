@@ -9,6 +9,25 @@ The goal of this lab is to guide you through a monolith to serverless SaaS migra
 
 In this Lab, we'll start with a traditional monolithic architecture for a working sample application. Then, we'll progressively migrate the elements of the single-tenant monolithic architecture to a modern multi-tenant solution. This will include moving to a modern web application hosted on S3, introducing the API Gateway, decomposing the application tier into serverless microservices, and carving data out of our monolithic database and moving management of this data to the individual microservices that take over ownership of managing this data. Along the way, we'll also introduce the elements needed to introduce multi-tenant best practices into your solution. 
 
+# How do I start?
+If you are participating in this bootcamp workshop during an AWS event, follow the instructions of the instructors on site.
+
+If you would like to run through the lab exercises in a self-guided manner, follow the steps below:
+
+1. Use an existing S3 bucket, or create a new S3 bucket in the same AWS Region where you’re going to run the workshop.
+2. Copy the 2 CloudFormation custom resources and the main workshop template to your S3 bucket.
+```
+aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/CopyS3Objects.jar ./ && aws s3 cp CopyS3Objects.jar s3://my-saas-workshop-bucket/ 
+aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/ClearS3Bucket.jar ./ && aws s3 cp ClearS3Bucket.jar s3://my-saas-workshop-bucket/ 
+aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/workshop.template ./ && aws s3 cp workshop.template s3://my-saas-workshop-bucket/
+```
+3. Launch the workshop’s CloudFormation stack and give it **your S3 bucket name** as the value for the **EEAssetsBucket** parameter. Leave all other parameters default.
+`aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name saas-workshop --template-url https://my-saas-workshop-bucket.s3.amazonaws.com/workshop.template --parameters ParameterKey=EEAssetsBucket,ParameterValue=my-saas-workshop-bucket`
+ 
+Replace **__my-saas-workshop-bucket__** with your settings. The stack will probably take around 20+ minutes to complete due to the RDS clusters. 
+
+Note that this workshop deploys infrastructure into your AWS account that is outside of the free tier, and you should delete the CloudFormation stack when you are finished to minimize costs.
+
 <br></br>
 ## Lab 1 – Deploying, Exploring, and Exercising the Single-Tenant Monolith
 
