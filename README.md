@@ -22,7 +22,9 @@ aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/ClearS3Bucket
 aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/workshop.template ./ && aws s3 cp workshop.template s3://my-saas-workshop-bucket/
 ```
 3. Launch the workshop’s CloudFormation stack and give it **your S3 bucket name** as the value for the **EEAssetsBucket** parameter. Leave all other parameters default.
-`aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name saas-workshop --template-url https://my-saas-workshop-bucket.s3.amazonaws.com/workshop.template --parameters ParameterKey=EEAssetsBucket,ParameterValue=my-saas-workshop-bucket`
+```
+aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name saas-workshop --template-url https://my-saas-workshop-bucket.s3.amazonaws.com/workshop.template --parameters ParameterKey=EEAssetsBucket,ParameterValue=my-saas-workshop-bucket
+```
  
 Replace **__my-saas-workshop-bucket__** with your settings. The stack will probably take around 20+ minutes to complete due to the RDS clusters. 
 
