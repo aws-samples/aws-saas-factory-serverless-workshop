@@ -10,7 +10,7 @@ The goal of this lab is to guide you through a monolith to serverless SaaS migra
 In this Lab, we'll start with a traditional monolithic architecture for a working sample application. Then, we'll progressively migrate the elements of the single-tenant monolithic architecture to a modern multi-tenant solution. This will include moving to a modern web application hosted on S3, introducing the API Gateway, decomposing the application tier into serverless microservices, and carving data out of our monolithic database and moving management of this data to the individual microservices that take over ownership of managing this data. Along the way, we'll also introduce the elements needed to introduce multi-tenant best practices into your solution. 
 
 # How do I start?
-If you are participating in this bootcamp workshop during an AWS event, follow the instructions of the instructors on site.
+If you are participating in this workshop during an AWS event, follow the instructions of the instructors on site.
 
 If you would like to run through the lab exercises in a self-guided manner, follow the steps below:
 
