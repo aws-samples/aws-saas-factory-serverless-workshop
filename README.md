@@ -17,13 +17,31 @@ If you would like to run through the lab exercises in a self-guided manner, foll
 1. Use an existing S3 bucket, or create a new S3 bucket in the same AWS Region where you’re going to run the workshop.
 2. Copy the 2 CloudFormation custom resources and the main workshop template to your S3 bucket.
 ```
-aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/CopyS3Objects.jar ./ && aws s3 cp CopyS3Objects.jar s3://my-saas-workshop-bucket/ 
-aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/ClearS3Bucket.jar ./ && aws s3 cp ClearS3Bucket.jar s3://my-saas-workshop-bucket/ 
-aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/workshop.template ./ && aws s3 cp workshop.template s3://my-saas-workshop-bucket/
+# Update YOUR_BUCKET with your S3 bucket
+YOUR_BUCKET=my-saas-workshop-bucket 
+
+TEMP_FOLDER=/tmp
+
+for item in CopyS3Objects.jar ClearS3Bucket.jar workshop.template
+do
+  echo "Downloading to ${TEMP_FOLDER}/${item}"
+  aws s3 cp s3://aws-saas-factory-serverless-saas-workshop-us-west-2/${item} ${TEMP_FOLDER}/${item}
+
+  echo "Uploading ${TEMP_FOLDER}/${item}"
+  aws s3 cp ${TEMP_FOLDER}/${item} s3://${YOUR_BUCKET}/${item}
+
+  echo "Cleaning up"
+  rm ${TEMP_FOLDER}/$item
+done
 ```
+
 3. Launch the workshop’s CloudFormation stack and give it **your S3 bucket name** as the value for the **EEAssetsBucket** parameter. Leave all other parameters default.
 ```
-aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name saas-workshop --template-url https://my-saas-workshop-bucket.s3.amazonaws.com/workshop.template --parameters ParameterKey=EEAssetsBucket,ParameterValue=my-saas-workshop-bucket
+aws cloudformation create-stack \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --stack-name saas-workshop \
+  --template-url https://${YOUR_BUCKET}.s3.amazonaws.com/workshop.template \
+  --parameters ParameterKey=EEAssetsBucket,ParameterValue=${YOUR_BUCKET}
 ```
  
 Replace **__my-saas-workshop-bucket__** with your settings. The stack will probably take around 20+ minutes to complete due to the RDS clusters. 
