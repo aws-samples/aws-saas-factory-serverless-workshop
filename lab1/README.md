@@ -23,7 +23,7 @@ The setup of this workshop provisioned all the supporting infrastructure for you
 
 <b>Step 1</b> – We want to simulate the developer experience as best we can, so we've started this lab with a baseline of infrastructure that has no application deployed. To get things moving, open the IDE that will be used throughout this workshop. We will use Amazon Cloud9 as our IDE for this workshop. To open Cloud9 search for the service in the AWS console, or find it listed under the Developer Tools category. 
 
-Once you've opened the Cloud9 service, you'll see all the environments available to this account. An environment has been pre-provisioned for use throughout this workshop. On the AWS Cloud9 page you'll see <b>"Serverless SaaS Workshop IDE"</b> listed as one of the environments. Open this environment by selecting the <b>"Open IDE"</b> button.
+Once you've navigated to the Cloud9 in the AWS Console, click on the left-hand menu (three lines), and select "Account Environments". You'll see all the environments available to this account. An environment has been pre-provisioned for use throughout this workshop. On the AWS Cloud9 page you'll see <b>"Serverless SaaS Workshop IDE"</b> listed as one of the environments. Open this environment by selecting the <b>"Open IDE"</b> button.
 
 <p align="center"><img src="../images/lab1/Cloud9Console.png" alt="Cloud 9 Console"/></p>
 
