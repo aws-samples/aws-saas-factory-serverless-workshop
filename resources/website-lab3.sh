@@ -60,7 +60,7 @@ npm run build
 echo
 echo "Uploading React app to S3 website bucket"
 cd build
-aws s3 sync --delete --cache-control no-store --acl public-read . s3://$S3_WEBSITE_BUCKET
+aws s3 sync --delete --cache-control no-store . s3://$S3_WEBSITE_BUCKET
 
 # Order Service lambdas are cold. Warm them up to improve the workshop experience.
 curl -s -H "Accept: application/json" -H "Content-Type: application/json" "$API_GATEWAY_URL/orders" > /dev/null

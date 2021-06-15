@@ -1258,8 +1258,12 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      WebsiteConfiguration:
-        IndexDocument: index.html
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
       Tags:
         - Key: Name
           Value: !Sub saas-factory-srvls-wrkshp-website-bucket-${AWS::Region}
@@ -1272,9 +1276,13 @@ Resources:
     Properties:
       ServiceToken: !GetAtt LambdaClearS3Bucket.Arn
       Bucket: !Ref WebsiteBucket
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub access-identity-${WebsiteBucket}
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
-    DependsOn: WebsiteBucket
     Properties:
       DistributionConfig:
         DefaultRootObject: index.html
@@ -1283,17 +1291,26 @@ Resources:
         HttpVersion: http2
         Origins:
           - Id: !Sub S3-Website-${WebsiteBucket}
-            DomainName: !Select [1, !Split ["http://", !GetAtt WebsiteBucket.WebsiteURL]]
-            CustomOriginConfig:
-              OriginProtocolPolicy: http-only
-              OriginSSLProtocols: ['TLSv1', 'TLSv1.1', 'TLSv1.2']
+            DomainName: !Sub ${WebsiteBucket}.s3.${AWS::Region}.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${OriginAccessIdentity}
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
             ResponsePagePath: /index.html
         DefaultCacheBehavior:
-          AllowedMethods: [GET,HEAD,OPTIONS]
-          CachedMethods: [GET,HEAD,OPTIONS]
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
           TargetOriginId: !Sub S3-Website-${WebsiteBucket}
           ViewerProtocolPolicy: redirect-to-https
           Compress: true
@@ -1303,6 +1320,28 @@ Resources:
               - Access-Control-Request-Headers
               - Access-Control-Request-Method
             QueryString: false
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        !Ref WebsiteBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              CanonicalUser:
+                !GetAtt OriginAccessIdentity.S3CanonicalUserId
+            Action: s3:GetObject
+            Resource: !Sub arn:aws:s3:::${WebsiteBucket}/*
+          - Effect: Deny
+            Action: s3:*
+            Principal: '*'
+            Resource:
+              - !Sub arn:aws:s3:::${WebsiteBucket}/*
+              - !Sub arn:aws:s3:::${WebsiteBucket}
+            Condition:
+              Bool: {'aws:SecureTransport': false}
   SSMParamVpc:
     Type: AWS::SSM::Parameter
     Properties:
