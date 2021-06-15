@@ -281,11 +281,6 @@ Resources:
     Properties:
       LogGroupName: !Sub saas-factory-srvls-wrkshp-${AWS::Region}
       RetentionInDays: 30
-  AppServerSystemLogs:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /var/log/messages
-      RetentionInDays: 30
   AppServerLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     DependsOn: InvokeLambdaCreateKeyPair
@@ -315,7 +310,9 @@ Resources:
               - "sed -i s/us-east-1/"
               - !Ref AWS::Region
               - "/g /etc/awslogs/awscli.conf\n"
-              - "# Add an entry for our app to the log agent config\n"
+              - "# Remove the default /var/log/messages logs from CloudWatch\n"
+              - "sed -i '/\\[\\/var\\/log\\/messages\\]/, /log_group_name = \\/var\\/log\\/messages/d' /etc/awslogs/awslogs.conf\n"
+              - "# Add an entry for our app to CloudWatch\n"
               - "cat << 'EOF' >> /etc/awslogs/awslogs.conf\n"
               - "\n"
               - "[/home/ec2-user/application.log]\n"
@@ -361,7 +358,7 @@ Resources:
       AutomaticStopTimeMinutes: 120
       SubnetId: !Ref SubnetPublicA
       InstanceType: t3.medium
-      Name: Serverless SaaS Workshop IDE
+      Name: Monolith to Serverless SaaS Workshop IDE
       OwnerArn:
         !If [EventEngine, !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/${EventEngineRoleName}/MasterKey", !Ref "AWS::NoValue"]
   LambdaExecutionRole:
