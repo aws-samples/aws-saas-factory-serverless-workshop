@@ -1311,12 +1311,12 @@ Resources:
           TargetOriginId: !Sub S3-Website-${WebsiteBucket}
           ViewerProtocolPolicy: redirect-to-https
           Compress: true
-          ForwardedValues:
-            Headers:
-              - Origin
-              - Access-Control-Request-Headers
-              - Access-Control-Request-Method
-            QueryString: false
+          # CachingOptimized managed cache policy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          # CORS-S3Origin managed origin request policy
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+          # CORS-with-preflight-and-SecurityHeadersPolicy managed response headers policy
+          ResponseHeadersPolicyId: eaab4381-ed33-4a86-88ca-d9558dc6cd63
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
