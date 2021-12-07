@@ -34,7 +34,7 @@ The Cloud9 IDE has all the traditional elements you would expect to find in a mo
 <b>Step 2</b> – Now that Cloud9 is open, we can fetch our source code and build and deploy our applications. First, we need to bootstrap our Cloud9 instance by installing some dependencies and getting the code base set it up for you to use. We have configured a CI/CD pipeline using the AWS developer tools CodeCommit, CodeBuild, CodeDeploy and CodePipeline. This script will download a copy of the workshop source code and populate a local CodeCommit repository that we will be using as we apply changes during this workshop. Making changes to this repository will trigger the pipeline to build and deploy the application. Let's execute the bootstrap script with a cURL command. Place your cursor at the command line prompt in the lower window pane of Cloud9 and run the following command:
 
 ```
-curl -s https://raw.githubusercontent.com/aws-samples/aws-saas-factory-serverless-workshop/master/resources/bootstrap.sh | bash
+curl -s https://raw.githubusercontent.com/aws-samples/aws-saas-factory-serverless-workshop/main/resources/bootstrap.sh | bash
 ```
 
 When this script is done executing, you'll have all the necessary pieces in place to begin exercising our application.
