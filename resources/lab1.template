@@ -709,7 +709,7 @@ Resources:
                 Provider: CodeCommit
                 Version: 1
               Configuration:
-                BranchName: master
+                BranchName: main
                 RepositoryName: !GetAtt CodeCommitRepo.Name
                 PollForSourceChanges: false
               RunOrder: 1
@@ -781,7 +781,7 @@ Resources:
           referenceType:
             - branch
           referenceName:
-            - master
+            - main
       Targets:
         - Arn: !Sub arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
           RoleArn: !GetAtt CloudWatchEventRoleForCloudTrail.Arn
