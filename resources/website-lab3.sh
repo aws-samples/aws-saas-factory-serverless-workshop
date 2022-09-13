@@ -49,6 +49,8 @@ sed -i -r -e 's|(^\s+)(base_url: )("https://.+\.execute-api\..+\.amazonaws\.com/
 
 echo
 echo "Installing NodeJS dependencies"
+rm -f package-lock.json
+npm install npm-force-resolutions
 npm install
 
 echo

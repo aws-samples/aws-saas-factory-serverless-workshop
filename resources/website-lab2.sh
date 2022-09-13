@@ -47,6 +47,7 @@ sed -i -r -e 's|(^\s+)(base_url: )(process.env.REACT_APP_BASE_URL,)|//\1\2\3\n\1
 
 echo
 echo "Installing NodeJS dependencies"
+rm -f package-lock.json
 npm install npm-force-resolutions
 npm install
 
