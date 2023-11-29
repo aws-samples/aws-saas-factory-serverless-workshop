@@ -1420,3 +1420,4 @@ Outputs:
     Description: Lambda execution role to add an application user to an RDS cluster
     Value: !GetAtt LambdaAddDatabaseUser.Arn
 ...
+
