@@ -358,6 +358,7 @@ Resources:
       AutomaticStopTimeMinutes: 120
       SubnetId: !Ref SubnetPublicA
       InstanceType: t3.medium
+      ImageId: amazonlinux-2-x86_64
       Name: Monolith to Serverless SaaS Workshop IDE
       OwnerArn:
         !If [EventEngine, !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/${EventEngineRoleName}/MasterKey", !Ref "AWS::NoValue"]
