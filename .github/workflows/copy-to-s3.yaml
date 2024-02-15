@@ -1,0 +1,53 @@
+---
+name: Copy to S3
+on:
+  push:
+    branches:
+      - main
+env:
+  AWS_DEFAULT_REGION: us-west-2
+  AWS_DEFAULT_OUTPUT: json
+jobs:
+  copy-to-s3:
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub’s OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: corretto
+        java-version: '17'
+        cache: maven
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-region: us-west-2
+        ## the following creates an ARN based on the values entered into github secrets
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_GITHUB_ACTIONS_ROLE }}
+    - name: Build Custom Resources
+      run: |
+        cd resources/custom-resources
+        for CUSTOM_RESOURCE in $(ls -d *)
+        do
+          cd $CUSTOM_RESOURCE
+          mvn
+          cd ..
+        done
+        cd ../../
+    - name: Copy files to S3
+      run: |
+        WORKSHOP_BUCKET=aws-saas-factory-serverless-saas-workshop-us-west-2
+        for CFT in $(ls resources/*.template)
+        do
+          aws s3 cp $CFT "s3://$WORKSHOP_BUCKET/$(basename $CFT)" --acl authenticated-read
+        done
+        for CUSTOM_RESOURCE in $(find resources/custom-resources -type f -name '*.jar' ! -name '*original-*.jar')
+        do
+          aws s3 cp $CUSTOM_RESOURCE "s3://$WORKSHOP_BUCKET/$(basename $CUSTOM_RESOURCE)" --acl authenticated-read
+        done
+...
