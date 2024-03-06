@@ -131,7 +131,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-products-get-by-id-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -154,7 +154,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-products-get-all-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -177,7 +177,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-products-update-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -200,7 +200,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-products-insert-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -223,7 +223,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-products-delete-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -246,7 +246,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-categories-get-all-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -269,7 +269,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-categories-get-by-id-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -292,7 +292,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-categories-update-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -315,7 +315,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-categories-insert-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS
@@ -338,7 +338,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-categories-delete-${AWS::Region}
       Role: !GetAtt ProductServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       VpcConfig: # Has to be a VPC Lambda because we're talking to RDS

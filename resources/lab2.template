@@ -108,7 +108,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-clear-bucket-lab2-${AWS::Region}
       Role: !GetAtt LambdaExecutionRoleLab2.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 900
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
@@ -473,7 +473,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-update-deploygrp-${AWS::Region}
       Role: !GetAtt LambdaUpdateDeploymentGroupRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 300
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.UpdateDeploymentGroup
@@ -523,7 +523,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-lambda-authorizer-${AWS::Region}
       Role: !GetAtt LambdaCustomAuthorizerRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 15
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.Authorizer
@@ -715,7 +715,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-get-by-id-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::getTenant
@@ -732,7 +732,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-get-all-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::getTenants
@@ -749,7 +749,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-update-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::updateTenant
@@ -766,7 +766,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-insert-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::insertTenant
@@ -783,7 +783,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-delete-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::deleteTenant
@@ -800,7 +800,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-next-db-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::nextAvailableDatabase
@@ -817,7 +817,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-tenants-update-userpool-${AWS::Region}
       Role: !GetAtt TenantServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.TenantService::updateUserPool
@@ -834,7 +834,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-reg-register-${AWS::Region}
       Role: !GetAtt RegistrationServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 600
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.RegistrationService::register
@@ -885,7 +885,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-auth-signin-${AWS::Region}
       Role: !GetAtt AuthServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.AuthService
@@ -2126,7 +2126,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-lambda-warmer-${AWS::Region}
       Role: !GetAtt LambdaWarmerExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 300
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.LambdaWarmer

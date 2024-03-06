@@ -140,7 +140,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-s3-copy-${AWS::Region}
       Role: !GetAtt S3ObjectsExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 900
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.CopyS3Objects
@@ -168,7 +168,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-s3-clear-${AWS::Region}
       Role: !GetAtt S3ObjectsExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 900
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.ClearS3Bucket
