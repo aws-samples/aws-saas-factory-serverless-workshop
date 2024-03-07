@@ -20,11 +20,11 @@ import {
     REQUEST_REGISTER_USER,
     RECEIVE_REGISTER_USER,
 } from '../actionTypes';
-import jwt from 'jsonwebtoken';
+import { jwtDecode } from 'jwt-decode';
 
 const isAuthenticated = sessionStorage.getItem('isAuthenticated');
 const idToken = sessionStorage.getItem('idToken');
-const decoded = jwt.decode(idToken);
+const decoded = idToken ? jwtDecode(idToken) : null;
 
 const initialState = {
     firstName: decoded ? decoded.firstName : null,

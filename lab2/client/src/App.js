@@ -15,10 +15,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import React from 'react';
-import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, connect } from 'react-redux';
 import Container from 'react-bootstrap/Container';
-import Jumbotron from 'react-bootstrap/Jumbotron';
 
 import {
   Navigation,
@@ -42,14 +41,41 @@ const App = ({ store, currentUser }) => {
             <Navigation />
           </Container>
           <Container>
-            <Jumbotron>
-              <Route exact={true} path='/'>
-                 {isAuthenticated ? <Redirect to="/dashboard" /> : <Home /> }
-              </Route>
-              <PrivateRoute path='/dashboard' component={Dashboard} />
-              <PrivateRoute path='/products' component={Products} />
-              <PrivateRoute path='/orders' component={Orders} />
-            </Jumbotron>
+            <div class="jumbotron">
+              <Routes>
+                <Route
+                  exact={true}
+                  path="/"
+                  element={
+                    isAuthenticated ? <Navigate to="/dashboard" /> : <Home />
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <PrivateRoute currentUser={currentUser}>
+                      <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/products"
+                  element={
+                    <PrivateRoute currentUser={currentUser}>
+                      <Products />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <PrivateRoute currentUser={currentUser}>
+                      <Orders />
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </div>
           </Container>
           <Container>
             <Footer />

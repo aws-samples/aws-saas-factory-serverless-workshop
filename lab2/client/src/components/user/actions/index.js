@@ -15,7 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import Axios from 'axios';
-import jwt from 'jsonwebtoken';
+import { jwtDecode } from 'jwt-decode';
 import config from '../../../shared/config';
 import {
     RECEIVE_AUTHENTICATE_USER,
@@ -53,7 +53,7 @@ export const authenticateUser = (userChallenge) => {
                     sessionStorage.setItem('isAuthenticated', 'true');
                     sessionStorage.setItem('idToken', idToken);
                     
-                    const decoded = jwt.decode(idToken);
+                    const decoded = jwtDecode(idToken);
                     const user = {
                         firstName: decoded.given_name,
                         lastName: decoded.family_name,

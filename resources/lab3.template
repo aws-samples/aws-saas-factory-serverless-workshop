@@ -118,7 +118,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-orders-get-by-id-${AWS::Region}
       Role: !GetAtt OrderServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::getOrder
@@ -135,7 +135,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-orders-get-all-${AWS::Region}
       Role: !GetAtt OrderServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::getOrders
@@ -152,7 +152,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-orders-update-${AWS::Region}
       Role: !GetAtt OrderServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::updateOrder
@@ -169,7 +169,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-orders-insert-${AWS::Region}
       Role: !GetAtt OrderServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::insertOrder
@@ -186,7 +186,7 @@ Resources:
     Properties:
       FunctionName: !Sub saas-factory-srvls-wrkshp-orders-delete-${AWS::Region}
       Role: !GetAtt OrderServiceExecutionRole.Arn
-      Runtime: java8
+      Runtime: java21
       Timeout: 30
       MemorySize: 1024
       Handler: com.amazon.aws.partners.saasfactory.OrderService::deleteOrder

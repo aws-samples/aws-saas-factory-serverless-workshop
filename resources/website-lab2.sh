@@ -47,8 +47,6 @@ sed -i -r -e 's|(^\s+)(base_url: )(process.env.REACT_APP_BASE_URL,)|//\1\2\3\n\1
 
 echo
 echo "Installing NodeJS dependencies"
-rm -f package-lock.json
-npm install npm-force-resolutions
 npm install
 
 echo
@@ -59,8 +57,8 @@ npm run build
 # (and wait for) the CloudFront distribution. You wouldn't do this in real life.
 echo
 echo "Uploading React app to S3 website bucket"
-cd build
-aws s3 sync --delete --cache-control no-store . s3://$S3_WEBSITE_BUCKET
+aws s3 sync ./build/ s3://$S3_WEBSITE_BUCKET/ --delete --include "*" --exclude "index.html" --exclude "asset-manifest.json" --exclude "static/*"
+aws s3 sync ./build/ s3://$S3_WEBSITE_BUCKET/ --delete --cache-control no-store --exclude "*" --include "index.html" --include "asset-manifest.json" --include "static/*"
 
 echo
 echo "Access your website at..."

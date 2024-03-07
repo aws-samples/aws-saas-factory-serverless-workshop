@@ -14,17 +14,15 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import React from 'react';
-import { Redirect, Route } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { connect } from 'react-redux';
 
-const PrivateRoute = ({ component: Component, currentUser, ...rest }) => (
-    <Route { ...rest } render={props => (
-        currentUser.isAuthenticated
-            ? <Component { ...props } />
-            : <Redirect to='/' />
-    )} />
-);
+const PrivateRoute = ({ currentUser, children }) => {
+    if (!currentUser.isAuthenticated) {
+        return <Navigate to='/' replace={true} />;
+    }
+    return children;
+};
 
 const mapStateToProps = state => {
     return {
