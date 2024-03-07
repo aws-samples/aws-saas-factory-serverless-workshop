@@ -15,7 +15,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import { rootReducer } from '../reducers';
 
 const configureStore = () => {
