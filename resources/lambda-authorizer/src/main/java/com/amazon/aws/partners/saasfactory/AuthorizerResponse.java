@@ -16,23 +16,18 @@
  */
 package com.amazon.aws.partners.saasfactory;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @JsonDeserialize(builder = AuthorizerResponse.Builder.class)
 public class AuthorizerResponse {
 
-    @JsonProperty("principalId")
-    private String principalId;
-
-    @JsonProperty("policyDocument")
-    private PolicyDocument policyDocument;
-
-    @JsonProperty("context")
-    private Map<String, String> context;
+    private final String principalId;
+    private final PolicyDocument policyDocument;
+    private final Map<String, String> context;
 
     private AuthorizerResponse(Builder builder) {
         this.principalId = builder.principalId;
@@ -49,7 +44,7 @@ public class AuthorizerResponse {
     }
 
     public Map<String, String> getContext() {
-        return context;
+        return context != null ? Map.copyOf(context) : null;
     }
 
     public static Builder builder() {
@@ -59,8 +54,8 @@ public class AuthorizerResponse {
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private String principalId;
-        private PolicyDocument policyDocument;
-        private Map<String, String> context;
+        private PolicyDocument policyDocument = PolicyDocument.builder().build();
+        private Map<String, String> context = new HashMap<>();
 
         private Builder() {
         }
@@ -71,12 +66,12 @@ public class AuthorizerResponse {
         }
 
         public Builder policyDocument(PolicyDocument policyDocument) {
-            this.policyDocument = policyDocument;
+            this.policyDocument = policyDocument != null ? policyDocument : PolicyDocument.builder().build();
             return this;
         }
 
         public Builder context(Map<String, String> context) {
-            this.context = context;
+            this.context = context != null ? context : new HashMap<>();
             return this;
         }
 

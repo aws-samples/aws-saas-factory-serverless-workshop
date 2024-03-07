@@ -16,20 +16,35 @@
  */
 package com.amazon.aws.partners.saasfactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @JsonDeserialize(builder = PolicyDocument.Builder.class)
 public class PolicyDocument {
 
-    public final String Version = "2012-10-17";
-    public List<Statement> Statement;
+    @JsonIgnore
+    private static final String VERSION = "2012-10-17";
+    @JsonIgnore
+    private final List<Statement> statements;
 
     private PolicyDocument(Builder builder) {
-        this.Statement = builder.statements;
+        this.statements = builder.statements;
+    }
+
+    @JsonProperty("Version")
+    public String getVersion() {
+        return VERSION;
+    }
+
+    @JsonProperty("Statement")
+    public List<Statement> getStatement() {
+        return List.copyOf(statements);
     }
 
     public static Builder builder() {
@@ -38,13 +53,18 @@ public class PolicyDocument {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private List<Statement> statements = new ArrayList<>();
+        private List<Statement> statements = new ArrayList<>(List.of(Statement.builder().build()));
 
         private Builder() {
         }
 
-        public Builder statements(List<Statement> statements) {
-            this.statements = statements != null ? statements : new ArrayList<>();
+        public Builder statement(Statement... statement) {
+            if (statement != null && statement.length > 0) {
+                statements.clear();
+                Collections.addAll(this.statements, statement);
+            } else {
+                this.statements = new ArrayList<>();
+            }
             return this;
         }
 
