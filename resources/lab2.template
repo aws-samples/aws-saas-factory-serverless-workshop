@@ -518,6 +518,17 @@ Resources:
                 Action:
                   - cognito-idp:ListUserPools
                 Resource: '*'
+              # Required by Authorizer.isTrustedUserPool(). The authorizer reads the user pool
+              # id out of the token's own (unverified) issuer claim, so before it fetches that
+              # pool's public keys it calls DescribeUserPool to confirm the pool belongs to
+              # this account. DescribeUserPool cannot describe a pool in another account, so a
+              # successful call is proof of ownership. Without this permission the authorizer
+              # fails closed and denies every request, which is deliberate -- it must not fall
+              # back to trusting the issuer claim.
+              - Effect: Allow
+                Action:
+                  - cognito-idp:DescribeUserPool
+                Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
   LambdaCustomAuthorizer:
     Type: AWS::Lambda::Function
     Properties:

@@ -26,16 +26,33 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ResourceNotFoundException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class Authorizer implements RequestStreamHandler {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(Authorizer.class);
     private final static ObjectMapper MAPPER = new ObjectMapper();
+    private final static String AWS_REGION = System.getenv("AWS_REGION");
+
+    // A Cognito user pool id is always "<region>_<alphanumeric>". The value we extract from the
+    // token's issuer claim is interpolated into a JWKS URL, so constrain its shape before use.
+    private final static Pattern USER_POOL_ID = Pattern.compile("^[a-z]{2}(-[a-z]+)+-\\d_[A-Za-z0-9]+$");
+
+    // User pool ids confirmed to belong to this AWS account. Lambda reuses an execution
+    // environment across invocations, so this cache spares a DescribeUserPool call per request
+    // for pools we have already vouched for. Only positive results are cached.
+    private final static Set<String> TRUSTED_USER_POOLS = ConcurrentHashMap.newKeySet();
+
+    private final static CognitoIdentityProviderClient COGNITO = CognitoIdentityProviderClient.create();
 
     public void handleRequest(InputStream input, OutputStream output, Context context) {
         // Using a RequestSteamHandler here because there doesn't seem to be a way to get
@@ -101,9 +118,25 @@ public class Authorizer implements RequestStreamHandler {
     }
 
     protected DecodedJWT verifyToken(TokenAuthorizerRequest request) {
+        // The user pool id is read from the token's own issuer claim, which at this point is
+        // NOT verified -- JWT.decode() only base64-decodes the payload. It is therefore
+        // attacker-chosen, and is used here solely as a lookup key.
+        //
+        // That matters because Cognito's JWKS endpoint is public and account-agnostic. Without
+        // the check below, an attacker could stand up a user pool in their OWN AWS account,
+        // mint a correctly-signed token naming any tenant, and this authorizer would fetch
+        // that pool's public keys and verify the signature successfully. Signature validity is
+        // not issuer trust.
         String userPoolId = getTokenIssuer(request.tokenPayload());
+        if (!isTrustedUserPool(userPoolId)) {
+            LOGGER.error("Rejecting token: issuer user pool {} is not owned by this deployment",
+                    userPoolId);
+            return null;
+        }
+
         JWTVerifier verifier = JWT
                 .require(Algorithm.RSA256(new CognitoKeyProvider(userPoolId)))
+                .withIssuer(issuerUrl(userPoolId)) // the verified token must carry the issuer we resolved
                 .acceptLeeway(5L) // Allowed seconds of clock skew between token issuer and verifier
                 .build();
         DecodedJWT token = null;
@@ -115,8 +148,45 @@ public class Authorizer implements RequestStreamHandler {
         return token;
     }
 
+    /**
+     * Confirms that a user pool belongs to the AWS account this authorizer runs in.
+     *
+     * DescribeUserPool is account-scoped: it cannot describe a pool in somebody else's account,
+     * so a successful call is proof of ownership. Every tenant pool in this solution is created
+     * by the registration service inside this account, so legitimate pools always pass.
+     */
+    protected boolean isTrustedUserPool(String userPoolId) {
+        if (userPoolId == null || !USER_POOL_ID.matcher(userPoolId).matches()) {
+            return false;
+        }
+        if (TRUSTED_USER_POOLS.contains(userPoolId)) {
+            return true;
+        }
+        try {
+            COGNITO.describeUserPool(request -> request.userPoolId(userPoolId));
+            TRUSTED_USER_POOLS.add(userPoolId);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            // The pool does not exist in this account. This is the attack above, and is the
+            // expected outcome for a token minted by a pool we do not own.
+            return false;
+        } catch (SdkException e) {
+            // Fail closed. A throttle or a missing cognito-idp:DescribeUserPool permission must
+            // deny rather than fall back to trusting the token's own issuer claim.
+            LOGGER.error("Could not verify ownership of user pool {}: {}", userPoolId, e.getMessage());
+            return false;
+        }
+    }
+
+    protected String issuerUrl(String userPoolId) {
+        return String.format("https://cognito-idp.%s.amazonaws.com/%s", AWS_REGION, userPoolId);
+    }
+
     protected String getTokenIssuer(String token) {
         String issuer = JWT.decode(token).getClaim("iss").asString();
+        if (issuer == null) {
+            return null;
+        }
         return issuer.substring(issuer.lastIndexOf("/") + 1);
     }
 

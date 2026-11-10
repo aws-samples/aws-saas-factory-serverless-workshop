@@ -119,6 +119,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             <artifactId>regions</artifactId>
             <version>2.5.37</version>
         </dependency>
+        <!--
+            Needed by Authorizer.isTrustedUserPool(), which calls DescribeUserPool to confirm
+            that the user pool named in a token's issuer claim actually belongs to this AWS
+            account before its public keys are used to verify that token. Version matches the
+            existing regions pin above so the SDK modules stay consistent.
+        -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cognitoidentityprovider</artifactId>
+            <version>2.5.37</version>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
